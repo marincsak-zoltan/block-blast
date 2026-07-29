@@ -27,12 +27,20 @@ blockImage.onload = onLoad; gradHorizImage.onload = onLoad; gradVertImage.onload
 
 function getBoardCellFromCoords(clientX, clientY, piece) {
   const rect = canvas.getBoundingClientRect();
+  // Kiszámoljuk a CSS pixel és a vászon belső pixelje közötti arányt
+  const scale = canvas.width / rect.width;
+  
   const yOffset = gameState.cellSize * 1.5;
-  const mouseX = clientX - rect.left;
-  const mouseY = (clientY - yOffset) - rect.top;
 
-  const col = Math.floor((mouseX - (piece[0].length * gameState.cellSize) / 2) / gameState.cellSize + 0.5);
-  const row = Math.floor((mouseY - (piece.length * gameState.cellSize) / 2) / gameState.cellSize + 0.5);
+  // A kattintás/érintés pozíciója a vászon belső koordináta-rendszerében:
+  const canvasX = (clientX - rect.left) * scale;
+  const canvasY = ((clientY - yOffset) - rect.top) * scale;
+
+  const pRows = piece.length;
+  const pCols = piece[0].length;
+
+  const col = Math.floor((canvasX - (pCols * gameState.cellSize) / 2) / gameState.cellSize + 0.5);
+  const row = Math.floor((canvasY - (pRows * gameState.cellSize) / 2) / gameState.cellSize + 0.5);
 
   return { row, col };
 }
@@ -56,9 +64,13 @@ function resizeCanvas() {
 
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // A) Alap rács és lehelyezett blokkok rajzolása
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < GRID_SIZE; c++) {
-      const px = c * gameState.cellSize, py = r * gameState.cellSize;
+      const px = c * gameState.cellSize;
+      const py = r * gameState.cellSize;
+
       if (grid[r][c] !== 0) {
         ctx.drawImage(blockImage, px, py, gameState.cellSize, gameState.cellSize);
       } else {
@@ -69,68 +81,99 @@ function drawGrid() {
       }
     }
   }
+
+  // B) HÚZÁS KÖZBENI ELEMEK (Pulzáló csík + Árnyék) KÖZVETLENÜL A RÁCSRA
+  if (dragInfo.isDragging && dragInfo.index !== null) {
+    const piece = currentPieces[dragInfo.index];
+    if (piece) {
+      const { row, col } = getBoardCellFromCoords(dragInfo.x, dragInfo.y, piece);
+      const valid = canPlacePiece(piece, row, col);
+
+      // B.1) PULZÁLÓ STRIP-EK (Gradiens csíkok a teli sorokra/oszlopokra)
+      if (valid) {
+        const { fullRows, fullCols } = getSimulatedLineClears(piece, row, col);
+        ctx.save();
+        ctx.globalAlpha = 0.7 + 0.25 * Math.sin(Date.now() / 150);
+
+        // Sorok (Tűpontosan a rács belső pixeljeire)
+        fullRows.forEach(r => {
+          ctx.drawImage(gradHorizImage, 0, r * gameState.cellSize, GRID_SIZE * gameState.cellSize, gameState.cellSize);
+        });
+
+        // Oszlopok
+        fullCols.forEach(c => {
+          ctx.drawImage(gradVertImage, c * gameState.cellSize, 0, gameState.cellSize, GRID_SIZE * gameState.cellSize);
+        });
+
+        ctx.restore();
+      }
+
+      // B.2) SHADOW / ELŐNÉZET (A rácson)
+      ctx.save();
+      ctx.globalAlpha = 0.45;
+      for (let r = 0; r < piece.length; r++) {
+        for (let c = 0; c < piece[0].length; c++) {
+          if (piece[r][c] === 1) {
+            const targetRow = row + r;
+            const targetCol = col + c;
+
+            if (targetRow >= 0 && targetRow < GRID_SIZE && targetCol >= 0 && targetCol < GRID_SIZE) {
+              const px = targetCol * gameState.cellSize;
+              const py = targetRow * gameState.cellSize;
+
+              if (valid) {
+                ctx.drawImage(blockImage, px, py, gameState.cellSize, gameState.cellSize);
+              } else {
+                ctx.fillStyle = 'rgba(231, 76, 60, 0.8)';
+                ctx.fillRect(px, py, gameState.cellSize, gameState.cellSize);
+              }
+            }
+          }
+        }
+      }
+      ctx.restore();
+    }
+  }
 }
 
 function drawDragOverlay() {
   dragCtx.clearRect(0, 0, dragCanvas.width, dragCanvas.height);
+
   if (!dragInfo.isDragging || dragInfo.index === null) return;
 
   const piece = currentPieces[dragInfo.index];
   if (!piece) return;
 
+  // Az alakzat kirajzolása a megfogott ujj/kurzor pozíciójában
   const rect = canvas.getBoundingClientRect();
-  const { row, col } = getBoardCellFromCoords(dragInfo.x, dragInfo.y, piece);
-  const valid = canPlacePiece(piece, row, col);
+  const displayCellSize = rect.width / GRID_SIZE; // A látható cellaméret a képernyőn
 
-  // 1. Pulzáló vonalak
-  if (valid) {
-    const { fullRows, fullCols } = getSimulatedLineClears(piece, row, col);
-    dragCtx.save();
-    dragCtx.globalAlpha = 0.7 + 0.25 * Math.sin(Date.now() / 150);
-
-    fullRows.forEach(r => dragCtx.drawImage(gradHorizImage, rect.left, rect.top + r * gameState.cellSize, GRID_SIZE * gameState.cellSize, gameState.cellSize));
-    fullCols.forEach(c => dragCtx.drawImage(gradVertImage, rect.left + c * gameState.cellSize, rect.top, gameState.cellSize, GRID_SIZE * gameState.cellSize));
-    dragCtx.restore();
-  }
-
-  // 2. Shadow előnézet
-  dragCtx.save();
-  dragCtx.globalAlpha = 0.45;
-  for (let r = 0; r < piece.length; r++) {
-    for (let c = 0; c < piece[0].length; c++) {
-      if (piece[r][c] === 1) {
-        const targetRow = row + r, targetCol = col + c;
-        if (targetRow >= 0 && targetRow < GRID_SIZE && targetCol >= 0 && targetCol < GRID_SIZE) {
-          const px = rect.left + targetCol * gameState.cellSize;
-          const py = rect.top + targetRow * gameState.cellSize;
-          if (valid) {
-            dragCtx.drawImage(blockImage, px, py, gameState.cellSize, gameState.cellSize);
-          } else {
-            dragCtx.fillStyle = 'rgba(231, 76, 60, 0.8)';
-            dragCtx.fillRect(px, py, gameState.cellSize, gameState.cellSize);
-          }
-        }
-      }
-    }
-  }
-  dragCtx.restore();
-
-  // 3. Húzott elem az ujj alatt
-  const yOffset = gameState.cellSize * 1.5;
-  const startX = dragInfo.x - (piece[0].length * gameState.cellSize) / 2;
-  const startY = (dragInfo.y - yOffset) - (piece.length * gameState.cellSize) / 2;
+  const yOffset = displayCellSize * 1.5;
+  const startX = dragInfo.x - (piece[0].length * displayCellSize) / 2;
+  const startY = (dragInfo.y - yOffset) - (piece.length * displayCellSize) / 2;
 
   dragCtx.save();
   for (let r = 0; r < piece.length; r++) {
     for (let c = 0; c < piece[0].length; c++) {
       if (piece[r][c] === 1) {
-        dragCtx.drawImage(blockImage, startX + c * gameState.cellSize, startY + r * gameState.cellSize, gameState.cellSize, gameState.cellSize);
+        dragCtx.drawImage(
+          blockImage, 
+          startX + c * displayCellSize, 
+          startY + r * displayCellSize, 
+          displayCellSize, 
+          displayCellSize
+        );
       }
     }
   }
   dragCtx.restore();
 
-  if (dragInfo.isDragging) requestAnimationFrame(drawDragOverlay);
+  if (dragInfo.isDragging) {
+    requestAnimationFrame(() => {
+      drawGrid(); // Folyamatosan frissítjük a pulzálást a fő rácson is!
+      drawDragOverlay();
+    });
+  }
 }
 
 function drawPieces() {
