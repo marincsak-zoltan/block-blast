@@ -26,12 +26,28 @@ const pieceCanvases = [
 ];
 const pieceCtxs = pieceCanvases.map(c => c.getContext('2d'));
 
-// Textúra
+// --- KÉPEK BETÖLTÉSE ---
 const blockImage = new Image();
 blockImage.src = 'the_object.png';
-blockImage.onload = () => {
-  drawAll();
-};
+
+const gradHorizImage = new Image();
+gradHorizImage.src = 'gradient_horizontal.png';
+
+const gradVertImage = new Image();
+gradVertImage.src = 'gradient_vertical.png';
+
+// Újrarajzolunk mindent, amint a képek betöltődtek
+let loadedImagesCount = 0;
+const totalImages = 3;
+function onImageLoad() {
+  loadedImagesCount++;
+  if (loadedImagesCount === totalImages) {
+    drawAll();
+  }
+}
+blockImage.onload = onImageLoad;
+gradHorizImage.onload = onImageLoad;
+gradVertImage.onload = onImageLoad;
 
 // --- JÁTÉKBEÁLLÍTÁSOK ---
 const GRID_SIZE = 8;
@@ -119,10 +135,7 @@ function clearFullLines() {
   for (let r = 0; r < GRID_SIZE; r++) {
     let isFull = true;
     for (let c = 0; c < GRID_SIZE; c++) {
-      if (grid[r][c] === 0) {
-        isFull = false;
-        break;
-      }
+      if (grid[r][c] === 0) { isFull = false; break; }
     }
     if (isFull) fullRows.push(r);
   }
@@ -131,33 +144,15 @@ function clearFullLines() {
   for (let c = 0; c < GRID_SIZE; c++) {
     let isFull = true;
     for (let r = 0; r < GRID_SIZE; r++) {
-      if (grid[r][c] === 0) {
-        isFull = false;
-        break;
-      }
+      if (grid[r][c] === 0) { isFull = false; break; }
     }
     if (isFull) fullCols.push(c);
   }
 
-  // 3. Teli sorok törlése
-  fullRows.forEach(r => {
-    for (let c = 0; c < GRID_SIZE; c++) {
-      grid[r][c] = 0;
-    }
-  });
-
-  // 4. Teli oszlopok törlése
-  fullCols.forEach(c => {
-    for (let r = 0; r < GRID_SIZE; r++) {
-      grid[r][c] = 0;
-    }
-  });
-
-  // Visszaadjuk a törölt vonalak számát (később a pontozáshoz)
   return {
     clearedLinesCount: fullRows.length + fullCols.length,
-    rowsCleared: fullRows.length,
-    colsCleared: fullCols.length
+    fullRows,
+    fullCols
   };
 }
 
@@ -197,7 +192,7 @@ function updateScoreUI() {
 // Rács koordináta kiszámítása a képernyő abszolút (clientX, clientY) alapján
 function getBoardCellFromCoords(clientX, clientY, piece) {
   const rect = canvas.getBoundingClientRect();
-  const yOffset = cellSize * 1.5;
+  const yOffset = cellSize * 1.5; // Mobil ujj-eltolás
 
   const mouseX = clientX - rect.left;
   const mouseY = (clientY - yOffset) - rect.top;
@@ -205,8 +200,9 @@ function getBoardCellFromCoords(clientX, clientY, piece) {
   const pRows = piece.length;
   const pCols = piece[0].length;
 
-  const col = Math.round((mouseX - (pCols * cellSize) / 2) / cellSize);
-  const row = Math.round((mouseY - (pRows * cellSize) / 2) / cellSize);
+  // Pontos kerekítés a rács közepére igazítva
+  const col = Math.floor((mouseX - (pCols * cellSize) / 2) / cellSize + 0.5);
+  const row = Math.floor((mouseY - (pRows * cellSize) / 2) / cellSize + 0.5);
 
   return { row, col };
 }
@@ -276,7 +272,8 @@ restartBtn.addEventListener('click', resetGame);
 
 function resizeCanvas() {
   const windowPadding = 20;
-  const availableHeight = window.innerHeight - 240;
+  // Kicsit több helyet hagyunk az alsó kártyáknak és a pontszámnak mobilon
+  const availableHeight = window.innerHeight - 260; 
   const availableWidth = window.innerWidth - windowPadding;
   const maxSize = Math.min(availableWidth, availableHeight, 420);
 
@@ -284,13 +281,14 @@ function resizeCanvas() {
   canvas.height = maxSize;
   cellSize = canvas.width / GRID_SIZE;
 
-  // Teljes képernyős lebegő canvas felbontása
+  // Felső canvas méretezése
   dragCanvas.width = window.innerWidth;
   dragCanvas.height = window.innerHeight;
 
+  // Alsó 3 kártya canvas méretének beállítása
   pieceCanvases.forEach(pCanvas => {
-    pCanvas.width = pCanvas.clientWidth || 110;
-    pCanvas.height = pCanvas.clientHeight || 110;
+    pCanvas.width = pCanvas.clientWidth || 100;
+    pCanvas.height = pCanvas.clientHeight || 100;
   });
 
   drawAll();
@@ -337,9 +335,9 @@ function drawDragOverlay() {
   const { row, col } = getBoardCellFromCoords(dragX, dragY, piece);
   const valid = canPlacePiece(piece, row, col);
 
-  // A) ELŐNÉZET / ÁRNYÉK A PÁLYÁN (Abszolút képernyőpozícióval)
+  // A) SHADOW / ELŐNÉZET (Tökéletesen a rácselemekhez igazítva)
   dragCtx.save();
-  dragCtx.globalAlpha = 0.4;
+  dragCtx.globalAlpha = 0.45;
 
   for (let r = 0; r < piece.length; r++) {
     for (let c = 0; c < piece[0].length; c++) {
@@ -348,6 +346,7 @@ function drawDragOverlay() {
         const targetCol = col + c;
 
         if (targetRow >= 0 && targetRow < GRID_SIZE && targetCol >= 0 && targetCol < GRID_SIZE) {
+          // A rect.left / rect.top segítségével pontosan a játékmezőre rajzolunk
           const px = rect.left + targetCol * cellSize;
           const py = rect.top + targetRow * cellSize;
 
@@ -368,7 +367,7 @@ function drawDragOverlay() {
   }
   dragCtx.restore();
 
-  // B) AZ ÉPPEN HÚZOTT ALAKZAT AZ UJJ ALATT (Teljesen szabadon lebeg bárhol)
+  // B) HÚZOTT ALAKZAT AZ UJJ ALATT
   const yOffset = cellSize * 1.5;
   const pRows = piece.length;
   const pCols = piece[0].length;
@@ -445,11 +444,189 @@ function drawAll() {
   drawDragOverlay();
 }
 
+// --- IDEIGLENES MÁTRIX ELLENŐRZŐ ALGORITMUS ---
+// Szimulálja, hogy ha beraknánk az alakzatot, mely sorok/oszlopok telnének meg
+function getSimulatedLineClears(piece, startRow, startCol) {
+  // Készítünk egy másolatot a jelenlegi rácsról
+  const tempGrid = grid.map(row => [...row]);
+  const pRows = piece.length;
+  const pCols = piece[0].length;
+
+  // Ideiglenesen behelyezzük a blokkot
+  for (let r = 0; r < pRows; r++) {
+    for (let c = 0; c < pCols; c++) {
+      if (piece[r][c] === 1) {
+        tempGrid[startRow + r][startCol + c] = 1;
+      }
+    }
+  }
+
+  let fullRows = [];
+  let fullCols = [];
+
+  // Teli sorok ellenőrzése a másolt rácson
+  for (let r = 0; r < GRID_SIZE; r++) {
+    let isFull = true;
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (tempGrid[r][c] === 0) { isFull = false; break; }
+    }
+    if (isFull) fullRows.push(r);
+  }
+
+  // Teli oszlopok ellenőrzése a másolt rácson
+  for (let c = 0; c < GRID_SIZE; c++) {
+    let isFull = true;
+    for (let r = 0; r < GRID_SIZE; r++) {
+      if (tempGrid[r][c] === 0) { isFull = false; break; }
+    }
+    if (isFull) fullCols.push(c);
+  }
+
+  return { fullRows, fullCols };
+}
+
+// --- FELSŐ LEBEGŐ RÉTEG RAJZOLÁSA PULZÁLÓ STRIP-EKKEL ---
+function drawDragOverlay() {
+  dragCtx.clearRect(0, 0, dragCanvas.width, dragCanvas.height);
+
+  if (!isDragging || draggedPieceIndex === null) return;
+
+  const piece = currentPieces[draggedPieceIndex];
+  if (!piece) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const { row, col } = getBoardCellFromCoords(dragX, dragY, piece);
+  const valid = canPlacePiece(piece, row, col);
+
+  // 1. PULZÁLÓ SOR ÉS OSZLOP KIEMELÉS (Ha érvényes a lerakási hely)
+  if (valid) {
+    const { fullRows, fullCols } = getSimulatedLineClears(piece, row, col);
+
+    // Finom szinusz alapú pulzálás (áttetszőség 0.45 és 0.95 között lüktet)
+    const pulseAlpha = 0.7 + 0.25 * Math.sin(Date.now() / 150);
+
+    dragCtx.save();
+    dragCtx.globalAlpha = pulseAlpha;
+
+    // A) Pulzáló sorok kirajzolása (gradient_horizontal.png)
+    fullRows.forEach(r => {
+      const px = rect.left;
+      const py = rect.top + r * cellSize;
+      const fullWidth = GRID_SIZE * cellSize;
+
+      if (gradHorizImage.complete && gradHorizImage.naturalWidth !== 0) {
+        dragCtx.drawImage(gradHorizImage, px, py, fullWidth, cellSize);
+      }
+    });
+
+    // B) Pulzáló oszlopok kirajzolása (gradient_vertical.png)
+    fullCols.forEach(c => {
+      const px = rect.left + c * cellSize;
+      const py = rect.top;
+      const fullHeight = GRID_SIZE * cellSize;
+
+      if (gradVertImage.complete && gradVertImage.naturalWidth !== 0) {
+        dragCtx.drawImage(gradVertImage, px, py, cellSize, fullHeight);
+      }
+    });
+
+    dragCtx.restore();
+  }
+
+  // 2. SHADOW / ELŐNÉZET (A blokk áttetsző képe a rácson)
+  dragCtx.save();
+  dragCtx.globalAlpha = 0.45;
+
+  for (let r = 0; r < piece.length; r++) {
+    for (let c = 0; c < piece[0].length; c++) {
+      if (piece[r][c] === 1) {
+        const targetRow = row + r;
+        const targetCol = col + c;
+
+        if (targetRow >= 0 && targetRow < GRID_SIZE && targetCol >= 0 && targetCol < GRID_SIZE) {
+          const px = rect.left + targetCol * cellSize;
+          const py = rect.top + targetRow * cellSize;
+
+          if (valid) {
+            if (blockImage.complete && blockImage.naturalWidth !== 0) {
+              dragCtx.drawImage(blockImage, px, py, cellSize, cellSize);
+            }
+          } else {
+            dragCtx.fillStyle = 'rgba(231, 76, 60, 0.8)';
+            dragCtx.fillRect(px, py, cellSize, cellSize);
+          }
+        }
+      }
+    }
+  }
+  dragCtx.restore();
+
+  // 3. HÚZOTT ALAKZAT AZ UJJ ALATT
+  const yOffset = cellSize * 1.5;
+  const pRows = piece.length;
+  const pCols = piece[0].length;
+  const pieceWidth = pCols * cellSize;
+  const pieceHeight = pRows * cellSize;
+
+  const startX = dragX - pieceWidth / 2;
+  const startY = (dragY - yOffset) - pieceHeight / 2;
+
+  dragCtx.save();
+  for (let r = 0; r < pRows; r++) {
+    for (let c = 0; c < pCols; c++) {
+      if (piece[r][c] === 1) {
+        const px = startX + c * cellSize;
+        const py = startY + r * cellSize;
+
+        if (blockImage.complete && blockImage.naturalWidth !== 0) {
+          dragCtx.drawImage(blockImage, px, py, cellSize, cellSize);
+        }
+      }
+    }
+  }
+  dragCtx.restore();
+
+  // Mivel pulzáló animáció van húzás közben, folyamatosan kérjük a következő képkockát
+  if (isDragging) {
+    requestAnimationFrame(drawDragOverlay);
+  }
+}
+
+// Új állapotváltozó a letiltáshoz az animáció alatt
+let isAnimating = false;
+
+// --- LEPCSOSETES ANIMALT TORLES ---
+async function animateLineClears(fullRows, fullCols) {
+  isAnimating = true;
+  const delayPerCell = 30; // ms / cella (nagyon gyors és gördülékeny)
+
+  // 0-tól 7-ig lépkedünk a cellákon
+  for (let step = 0; step < GRID_SIZE; step++) {
+    // A) Sorok törlése balról jobbra (step = oszlop index)
+    fullRows.forEach(r => {
+      grid[r][step] = 0;
+    });
+
+    // B) Oszlopok törlése fentről lefelé (step = sor index)
+    fullCols.forEach(c => {
+      grid[step][c] = 0;
+    });
+
+    // Újrarajzoljuk a rácsot a részleges törléssel
+    drawGrid();
+
+    // Kis várakozás a következő cella eltüntetése előtt
+    await new Promise(resolve => setTimeout(resolve, delayPerCell));
+  }
+
+  isAnimating = false;
+}
+
 // --- ESEMÉNYKEZELŐK ---
 
 function handleStart(clientX, clientY, index) {
-  if (!isGameStarted || isGameOver || currentPieces[index] === null) return;
-  if (currentPieces[index] === null) return;
+  if (!isGameStarted || isGameOver || isAnimating || currentPieces[index] === null) return;
+  
   isDragging = true;
   draggedPieceIndex = index;
   dragX = clientX;
@@ -464,8 +641,8 @@ function handleMove(clientX, clientY) {
   drawAll();
 }
 
-function handleEnd() {
-  if (!isDragging || isGameOver) return;
+async function handleEnd() {
+  if (!isDragging || isGameOver || isAnimating) return;
 
   const piece = currentPieces[draggedPieceIndex];
   if (piece) {
@@ -475,18 +652,24 @@ function handleEnd() {
       // 1. Blokk lehelyezése
       placePiece(piece, row, col);
 
-      // 2. Pont hozzáadása a lehelyezett blokkokért (1pt / cella)
       const pieceSizePoints = countPieceBlocks(piece);
       score += pieceSizePoints;
 
       currentPieces[draggedPieceIndex] = null;
+      isDragging = false;
+      draggedPieceIndex = null;
+      drawAll();
 
-      // 3. Sorok és oszlopok törlése
+      // 2. Teli sorok keresése
       const lineClearResult = clearFullLines();
       const linesCleared = lineClearResult.clearedLinesCount;
 
-      // 4. Kombó és pontszám kalkuláció
+      // 3. ANIMÁCIÓ HA VAN TÖRLÉS
       if (linesCleared > 0) {
+        // Lejátsszuk a balról-jobbra / fentről-lefelé törlést
+        await animateLineClears(lineClearResult.fullRows, lineClearResult.fullCols);
+
+        // Pontszám és kombó számítás
         const B = getBasicClearScore(linesCleared);
         const linePoints = B * comboCount + B;
         score += linePoints;
@@ -497,18 +680,18 @@ function handleEnd() {
 
       updateScoreUI();
 
-      // 5. Új alakzatok adása (ha mind a 3 elfogyott)
+      // 4. Új kör és Game Over ellenőrzés az animáció UTÁN
       checkSpawnNextRound();
 
-      // 6. GAME OVER ELLENŐRZÉS
       if (checkGameOver()) {
         triggerGameOver();
       }
+    } else {
+      isDragging = false;
+      draggedPieceIndex = null;
     }
   }
 
-  isDragging = false;
-  draggedPieceIndex = null;
   drawAll();
 }
 
