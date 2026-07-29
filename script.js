@@ -99,6 +99,90 @@ function placePiece(piece, startRow, startCol) {
   }
 }
 
+// --- SOR ÉS OSZLOPTÖRLŐ ALGORITMUS ---
+function clearFullLines() {
+  let fullRows = [];
+  let fullCols = [];
+
+  // 1. Teli sorok keresése
+  for (let r = 0; r < GRID_SIZE; r++) {
+    let isFull = true;
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (grid[r][c] === 0) {
+        isFull = false;
+        break;
+      }
+    }
+    if (isFull) fullRows.push(r);
+  }
+
+  // 2. Teli oszlopok keresése
+  for (let c = 0; c < GRID_SIZE; c++) {
+    let isFull = true;
+    for (let r = 0; r < GRID_SIZE; r++) {
+      if (grid[r][c] === 0) {
+        isFull = false;
+        break;
+      }
+    }
+    if (isFull) fullCols.push(c);
+  }
+
+  // 3. Teli sorok törlése
+  fullRows.forEach(r => {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      grid[r][c] = 0;
+    }
+  });
+
+  // 4. Teli oszlopok törlése
+  fullCols.forEach(c => {
+    for (let r = 0; r < GRID_SIZE; r++) {
+      grid[r][c] = 0;
+    }
+  });
+
+  // Visszaadjuk a törölt vonalak számát (később a pontozáshoz)
+  return {
+    clearedLinesCount: fullRows.length + fullCols.length,
+    rowsCleared: fullRows.length,
+    colsCleared: fullCols.length
+  };
+}
+
+// --- PONTOZÁSI ÁLLAPOT ---
+let comboCount = 0; // Egymást követő sikeres törlések száma
+
+// Lehelyezett alakzat celláinak megszámolása
+function countPieceBlocks(piece) {
+  let count = 0;
+  for (let r = 0; r < piece.length; r++) {
+    for (let c = 0; c < piece[0].length; c++) {
+      if (piece[r][c] === 1) count++;
+    }
+  }
+  return count;
+}
+
+// Alap törlési érték (B) kiszámítása a törölt sorok/oszlopok száma alapján
+function getBasicClearScore(linesCount) {
+  switch (linesCount) {
+    case 1: return 10;
+    case 2: return 20;
+    case 3: return 60;
+    case 4: return 120;
+    case 5: return 200;
+    default:
+      // Ha esetleg 5-nél is több vonalat törölne egyszerre (pl. 6)
+      return linesCount > 5 ? 200 + (linesCount - 5) * 100 : 0;
+  }
+}
+
+// UI Pontszám frissítése
+function updateScoreUI() {
+  scoreElement.textContent = score;
+}
+
 // Rács koordináta kiszámítása a képernyő abszolút (clientX, clientY) alapján
 function getBoardCellFromCoords(clientX, clientY, piece) {
   const rect = canvas.getBoundingClientRect();
@@ -315,8 +399,38 @@ function handleEnd() {
     const { row, col } = getBoardCellFromCoords(dragX, dragY, piece);
 
     if (canPlacePiece(piece, row, col)) {
+      // 1. Blokk lehelyezése
       placePiece(piece, row, col);
+
+      // 2. Lehelyezési pontok hozzáadása (1 pont / cella)
+      const pieceSizePoints = countPieceBlocks(piece);
+      score += pieceSizePoints;
+
       currentPieces[draggedPieceIndex] = null;
+
+      // 3. Sorok és oszlopok törlése
+      const lineClearResult = clearFullLines();
+      const linesCleared = lineClearResult.clearedLinesCount;
+
+      // 4. KOMBÓ ÉS PONTSZÁM KALKULÁCIÓ
+      if (linesCleared > 0) {
+        const B = getBasicClearScore(linesCleared);
+        // Képlet: B * N + B (ahol N az eddigi comboCount)
+        const linePoints = B * comboCount + B;
+        
+        score += linePoints;
+        comboCount++; // Kombó növelése a következő lépésre
+        
+        console.log(`Törölve: ${linesCleared} vonal | Kombó: ${comboCount} | Kapott pont: +${linePoints}`);
+      } else {
+        // Ha nem történt törlés, a kombó nullázódik
+        comboCount = 0;
+      }
+
+      // Pontszám frissítése a képernyőn
+      updateScoreUI();
+
+      // 5. Új kör ellenőrzése
       checkSpawnNextRound();
     }
   }
