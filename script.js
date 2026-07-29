@@ -2,6 +2,17 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// --- ÚJ UI ELEMEK DOM REFRESH ---
+const gameOverModal = document.getElementById('game-over-modal');
+const finalScoreElement = document.getElementById('final-score');
+const restartBtn = document.getElementById('restart-btn');
+const startGameModal = document.getElementById('start-game-modal');
+const startBtn = document.getElementById('start-btn');
+
+let isGameStarted = false; // Alapból hamis, amíg rá nem kattint a Start Game-re
+
+let isGameOver = false;
+
 // Felső lebegő canvas
 const dragCanvas = document.getElementById('dragCanvas');
 const dragCtx = dragCanvas.getContext('2d');
@@ -200,6 +211,67 @@ function getBoardCellFromCoords(clientX, clientY, piece) {
   return { row, col };
 }
 
+// --- JÁTÉK INDÍTÁSA ---
+function startGame() {
+  isGameStarted = true;
+  startGameModal.classList.add('hidden');
+}
+
+// Start gomb eseménykezelője
+startBtn.addEventListener('click', startGame);
+
+// --- GAME OVER ELLENŐRZŐ ALGORITMUS ---
+function checkGameOver() {
+  // 1. Megnézzük az összes még fel nem használt alakzatot
+  for (let i = 0; i < currentPieces.length; i++) {
+    const piece = currentPieces[i];
+    if (piece !== null) {
+      // 2. Végigpróbáljuk a rács összes celláját
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          // Ha akár EGYETLEN alakzatot le lehet rakni BÁRHOVA, nincs game over!
+          if (canPlacePiece(piece, r, c)) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+
+  // Ha ide elér a kód, egyetlen megmaradt alakzatot sem lehet elhelyezni sem hova
+  return true;
+}
+
+function triggerGameOver() {
+  isGameOver = true;
+  finalScoreElement.textContent = score;
+  gameOverModal.classList.remove('hidden');
+}
+
+// --- JÁTÉK ÚJRAINDÍTÁSA (RESET) ---
+function resetGame() {
+  // Rács ürítése
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      grid[r][c] = 0;
+    }
+  }
+
+  score = 0;
+  comboCount = 0;
+  isGameOver = false;
+  isGameStarted = true;
+
+  updateScoreUI();
+  gameOverModal.classList.add('hidden');
+
+  spawnNewPieces();
+  drawAll();
+}
+
+// Újraindítás gomb eseménykezelője
+restartBtn.addEventListener('click', resetGame);
+
 // --- MÉRETEZÉS ---
 
 function resizeCanvas() {
@@ -376,6 +448,7 @@ function drawAll() {
 // --- ESEMÉNYKEZELŐK ---
 
 function handleStart(clientX, clientY, index) {
+  if (!isGameStarted || isGameOver || currentPieces[index] === null) return;
   if (currentPieces[index] === null) return;
   isDragging = true;
   draggedPieceIndex = index;
@@ -392,7 +465,7 @@ function handleMove(clientX, clientY) {
 }
 
 function handleEnd() {
-  if (!isDragging) return;
+  if (!isDragging || isGameOver) return;
 
   const piece = currentPieces[draggedPieceIndex];
   if (piece) {
@@ -402,7 +475,7 @@ function handleEnd() {
       // 1. Blokk lehelyezése
       placePiece(piece, row, col);
 
-      // 2. Lehelyezési pontok hozzáadása (1 pont / cella)
+      // 2. Pont hozzáadása a lehelyezett blokkokért (1pt / cella)
       const pieceSizePoints = countPieceBlocks(piece);
       score += pieceSizePoints;
 
@@ -412,26 +485,25 @@ function handleEnd() {
       const lineClearResult = clearFullLines();
       const linesCleared = lineClearResult.clearedLinesCount;
 
-      // 4. KOMBÓ ÉS PONTSZÁM KALKULÁCIÓ
+      // 4. Kombó és pontszám kalkuláció
       if (linesCleared > 0) {
         const B = getBasicClearScore(linesCleared);
-        // Képlet: B * N + B (ahol N az eddigi comboCount)
         const linePoints = B * comboCount + B;
-        
         score += linePoints;
-        comboCount++; // Kombó növelése a következő lépésre
-        
-        console.log(`Törölve: ${linesCleared} vonal | Kombó: ${comboCount} | Kapott pont: +${linePoints}`);
+        comboCount++;
       } else {
-        // Ha nem történt törlés, a kombó nullázódik
         comboCount = 0;
       }
 
-      // Pontszám frissítése a képernyőn
       updateScoreUI();
 
-      // 5. Új kör ellenőrzése
+      // 5. Új alakzatok adása (ha mind a 3 elfogyott)
       checkSpawnNextRound();
+
+      // 6. GAME OVER ELLENŐRZÉS
+      if (checkGameOver()) {
+        triggerGameOver();
+      }
     }
   }
 

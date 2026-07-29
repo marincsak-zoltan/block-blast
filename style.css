@@ -72,3 +72,92 @@ body {
   pointer-events: none; /* Átengedi a touch/click eseményeket az alatta lévő elemeknek */
   z-index: 9999;        /* Garantáltan legfelül van minden felett */
 }
+
+/* GAME OVER OVERLAY & MODAL STÍLUSOK */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.45); /* Enyhe sötétítés a háttéren */
+  backdrop-filter: blur(4px);            /* Finom elmosás a játékterületen */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.modal.hidden {
+  display: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Modális ablak kártyája */
+.modal-content {
+  background-color: #774046;
+  border: 3px solid #89656a;
+  border-radius: 20px;
+  padding: 35px 45px;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  color: #fff5f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-width: 260px;
+}
+
+.modal-content h2 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: 1px;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.modal-content p {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  opacity: 0.95;
+}
+
+/* KÖZÖS GOMB STÍLUS (Start Game & New Game) */
+#start-btn, 
+#restart-btn {
+  margin-top: 10px;
+  padding: 14px 32px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #774046;
+  background-color: #fff5f7;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  
+  /* 3D alsó perem/árnyék hatás */
+  box-shadow: 0 6px 0 #d9c5c9, 0 10px 15px rgba(0, 0, 0, 0.25);
+  transition: all 0.1s ease;
+  position: relative;
+  top: 0;
+}
+
+/* Hover effektek (egérrel) */
+#start-btn:hover, 
+#restart-btn:hover {
+  background-color: #ffffff;
+}
+
+/* Megnyomás effektus (Kattintáskor vagy mobilon érintéskor lejjebb süllyed) */
+#start-btn:active, 
+#restart-btn:active {
+  top: 4px;
+  box-shadow: 0 2px 0 #d9c5c9, 0 4px 8px rgba(0, 0, 0, 0.2);
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hu">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -25,8 +25,35 @@
     <canvas id="piece2" class="piece-canvas"></canvas>
   </div>
 
-  <!-- FELSŐ FULLSCREEN CANVAS A HÚZÁSHOZ ÉS ÁRNYÉKHOZ -->
+  <!-- Fullscreen lebegő canvas a húzáshoz -->
   <canvas id="dragCanvas"></canvas>
+
+  <!-- START GAME OVERLAY (Indítás előtti ablak) -->
+  <div id="start-game-modal" class="modal">
+    <div class="modal-content">
+      <h2>Block Blast</h2>
+      <p>Welcome!</p>
+      <button id="start-btn">Start Game</button>
+    </div>
+  </div>
+
+  <!-- GAME OVER OVERLAY -->
+  <div id="game-over-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Game Over</h2>
+      <p>Score: <span id="final-score">0</span></p>
+      <button id="restart-btn">New Game</button>
+    </div>
+  </div>
+
+  <!-- GAME OVER OVERLAY (Középen a board felett) -->
+  <div id="game-over-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Game Over</h2>
+      <p>Score: <span id="final-score">0</span></p>
+      <button id="restart-btn">New Game</button>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
