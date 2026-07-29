@@ -1,4 +1,4 @@
-import { PIECES_WITH_WEIGHTS } from './pieces.js';
+import { PIECE_CATEGORIES, SMART_COMBOS } from './pieces.js';
 
 // --- JÁTÉKBEÁLLÍTÁSOK ÉS RÁCS ---
 export const GRID_SIZE = 8;
@@ -26,28 +26,79 @@ export let dragInfo = {
 // Az éppen elérhető 3 alakzat
 export let currentPieces = [null, null, null];
 
-// --- SÚLYOZOTT VÉLETLEN ALAKZAT SORSOLÓ ALGORITMUS ---
+// --- DINAMIKUS ALAKZAT SORSOLÓ LOGIKA ---
 function getRandomPieceWeighted() {
-  // 1. Összeszámoljuk a teljes súlymennyiséget
-  const totalWeight = PIECES_WITH_WEIGHTS.reduce((sum, item) => sum + item.weight, 0);
+  const score = gameState.score;
+  let pool = [];
 
-  // 2. Generálunk egy véletlen számot 0 és a totalWeight között
+  // 1. NEHÉZSÉGI SZINTEK MEGHATÁROZÁSA PONTSZÁM ALAPJÁN
+  if (score < 200) {
+    // 🟢 KEZDŐ: 70% könnyű, 30% normál, 0% nehéz
+    pool = [
+      ...PIECE_CATEGORIES.EASY.map(item => ({ ...item, weight: 70 })),
+      ...PIECE_CATEGORIES.MEDIUM.map(item => ({ ...item, weight: 30 }))
+    ];
+  } else if (score < 600) {
+    // 🟡 KÖZÉPHALADÓ: 30% könnyű, 50% normál, 20% nehéz
+    pool = [
+      ...PIECE_CATEGORIES.EASY.map(item => ({ ...item, weight: 30 })),
+      ...PIECE_CATEGORIES.MEDIUM.map(item => ({ ...item, weight: 50 })),
+      ...PIECE_CATEGORIES.HARD.map(item => ({ ...item, weight: 20 }))
+    ];
+  } else {
+    // 🔴 HALADÓ (600+ pont): kiegyensúlyozottabb, de több nehéz elemmel
+    pool = [
+      ...PIECE_CATEGORIES.EASY.map(item => ({ ...item, weight: 20 })),
+      ...PIECE_CATEGORIES.MEDIUM.map(item => ({ ...item, weight: 45 })),
+      ...PIECE_CATEGORIES.HARD.map(item => ({ ...item, weight: 35 }))
+    ];
+  }
+
+  // 2. SÚLYOZOTT SORSOLÁS
+  const totalWeight = pool.reduce((sum, item) => sum + item.weight, 0);
   let random = Math.random() * totalWeight;
 
-  // 3. Kiválasztjuk a megfelelő alakzatot a súlyok alapján
-  for (const item of PIECES_WITH_WEIGHTS) {
+  for (const item of pool) {
     if (random < item.weight) {
       return item.piece;
     }
     random -= item.weight;
   }
 
-  // Biztonsági tartalék
-  return PIECES_WITH_WEIGHTS[0].piece;
+  return PIECE_CATEGORIES.EASY[0].piece;
 }
 
-// Új 3 alakzat generálása
+// Segédfüggvény: Megszámolja, hány cella van elfoglalva a rácson
+function getOccupiedCellCount() {
+  let count = 0;
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (grid[r][c] !== 0) count++;
+    }
+  }
+  return count;
+}
+
+// Új 3 alakzat generálása (Dinamikus + Smart Combo)
 export function spawnNewPieces() {
+  const occupiedCells = getOccupiedCellCount();
+  const totalCells = GRID_SIZE * GRID_SIZE; // 64
+  const fillRatio = occupiedCells / totalCells;
+
+  // 🧠 SMART COMBO CHECK:
+  // Ha a pálya kevesebb mint 30%-a van tele (< 19 cella) ÉS 30% eséllyel bepörög:
+  if (fillRatio < 0.30 && Math.random() < 0.30) {
+    const randomComboIndex = Math.floor(Math.random() * SMART_COMBOS.length);
+    const chosenCombo = SMART_COMBOS[randomComboIndex];
+
+    // Berakjuk a 3 előre összehangolt elemet!
+    for (let i = 0; i < 3; i++) {
+      currentPieces[i] = chosenCombo[i];
+    }
+    return; // Kilépünk, megvan a smart leosztás!
+  }
+
+  // Ha nem váltott be a smart combo, a normál súlyozott sorsoló fut le
   for (let i = 0; i < 3; i++) {
     currentPieces[i] = getRandomPieceWeighted();
   }
