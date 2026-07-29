@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Block Blast</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Pontszám kijelző -->
+  <div class="score-container">
+    <span id="score">0</span>
+  </div>
+
+  <!-- Játékterület konténer -->
+  <div class="board-wrapper">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <!-- Alsó panel a 3 választható blokknak -->
+  <div class="pieces-container">
+    <canvas id="piece0" class="piece-canvas"></canvas>
+    <canvas id="piece1" class="piece-canvas"></canvas>
+    <canvas id="piece2" class="piece-canvas"></canvas>
+  </div>
+
+  <!-- FELSŐ FULLSCREEN CANVAS A HÚZÁSHOZ ÉS ÁRNYÉKHOZ -->
+  <canvas id="dragCanvas"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  background-color: #ffb3c7;
+  font-family: system-ui, -apple-system, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 100vh;
+  padding: 15px 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Pontszám */
+.score-container {
+  margin-top: 10px;
+  text-align: center;
+}
+
+#score {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff5f7;
+  text-shadow: 0 2px 8px rgba(119, 64, 70, 0.4);
+}
+
+/* Pálya kerettel */
+.board-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#gameCanvas {
+  background-color: #774046;
+  border: 3px solid #89656a;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Alsó kártyák */
+.pieces-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  height: 120px;
+  padding: 0 10px;
+}
+
+.piece-canvas {
+  width: 30%;
+  height: 100%;
+}
+
+/* FULLSCREEN LEBEGŐ CANVAS */
+#dragCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none; /* Átengedi a touch/click eseményeket az alatta lévő elemeknek */
+  z-index: 9999;        /* Garantáltan legfelül van minden felett */
+}
