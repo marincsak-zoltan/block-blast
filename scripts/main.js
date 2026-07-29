@@ -1,5 +1,6 @@
 import { GRID_SIZE, grid, gameState, dragInfo, currentPieces, spawnNewPieces, checkSpawnNextRound, resetState } from './state.js';
 import { canPlacePiece, placePiece, clearFullLines, getSimulatedLineClears, countPieceBlocks, getBasicClearScore, checkGameOver } from './logic.js';
+import { unlockAudio, playWooshSound, playPlaceSound, playComboSound, playGameOverSound, toggleMute } from './audio.js';
 
 // DOM elemek
 const canvas = document.getElementById('gameCanvas');
@@ -109,29 +110,26 @@ function drawGrid() {
       }
 
       // B.2) SHADOW / ELŐNÉZET (A rácson)
-      ctx.save();
-      ctx.globalAlpha = 0.45;
-      for (let r = 0; r < piece.length; r++) {
-        for (let c = 0; c < piece[0].length; c++) {
-          if (piece[r][c] === 1) {
-            const targetRow = row + r;
-            const targetCol = col + c;
+      if (valid) {
+        ctx.save();
+        ctx.globalAlpha = 0.45;
+        for (let r = 0; r < piece.length; r++) {
+          for (let c = 0; c < piece[0].length; c++) {
+            if (piece[r][c] === 1) {
+              const targetRow = row + r;
+              const targetCol = col + c;
 
-            if (targetRow >= 0 && targetRow < GRID_SIZE && targetCol >= 0 && targetCol < GRID_SIZE) {
-              const px = targetCol * gameState.cellSize;
-              const py = targetRow * gameState.cellSize;
+              if (targetRow >= 0 && targetRow < GRID_SIZE && targetCol >= 0 && targetCol < GRID_SIZE) {
+                const px = targetCol * gameState.cellSize;
+                const py = targetRow * gameState.cellSize;
 
-              if (valid) {
                 ctx.drawImage(blockImage, px, py, gameState.cellSize, gameState.cellSize);
-              } else {
-                ctx.fillStyle = 'rgba(231, 76, 60, 0.8)';
-                ctx.fillRect(px, py, gameState.cellSize, gameState.cellSize);
               }
             }
           }
         }
+        ctx.restore();
       }
-      ctx.restore();
     }
   }
 }
@@ -219,12 +217,34 @@ async function animateLineClears(fullRows, fullCols) {
 // Eseménykezelők
 function handleStart(clientX, clientY, index) {
   if (!gameState.isStarted || gameState.isGameOver || gameState.isAnimating || currentPieces[index] === null) return;
+  
+  // 🔓 FELÉBRESZTJÜK AZ AUDIÓT AZ ELSŐ ÉRINTÉSNÉL!
+  unlockAudio();
+
   dragInfo.isDragging = true;
   dragInfo.index = index;
   dragInfo.x = clientX;
   dragInfo.y = clientY;
+
+  // 🔊 RANDOM WOOSH HANG
+  playWooshSound();
+
   drawAll();
 }
+
+const muteBtn = document.getElementById('mute-btn');
+
+muteBtn.addEventListener('click', () => {
+  const muted = toggleMute();
+  
+  // Ikon és stílus frissítése a gombra
+  muteBtn.textContent = muted ? '🔇' : '🔊';
+  if (muted) {
+    muteBtn.classList.add('muted');
+  } else {
+    muteBtn.classList.remove('muted');
+  }
+});
 
 function handleMove(clientX, clientY) {
   if (!dragInfo.isDragging) return;
@@ -254,12 +274,25 @@ async function handleEnd() {
 
       const lineClearResult = clearFullLines();
       if (lineClearResult.clearedLinesCount > 0) {
+        // 🔊 KOMBÓ HANG LEJÁTSZÁSA (A törlési animáció előtt)
+        playComboSound(gameState.comboCount + 1);
+
         await animateLineClears(lineClearResult.fullRows, lineClearResult.fullCols);
+
         const B = getBasicClearScore(lineClearResult.clearedLinesCount);
         gameState.score += B * gameState.comboCount + B;
+
         gameState.comboCount++;
+        gameState.comboMovesLeft = 3;
       } else {
-        gameState.comboCount = 0;
+        // 🔊 SIMA LERAKÁSI HANG (Ha nem volt törlés)
+        playPlaceSound();
+
+        gameState.comboMovesLeft--;
+        if (gameState.comboMovesLeft <= 0) {
+          gameState.comboCount = 0;
+          gameState.comboMovesLeft = 3;
+        }
       }
 
       scoreElement.textContent = gameState.score;
@@ -269,6 +302,9 @@ async function handleEnd() {
         gameState.isGameOver = true;
         finalScoreElement.textContent = gameState.score;
         gameOverModal.classList.remove('hidden');
+
+        // 🔊 GAME OVER HANG
+        playGameOverSound();
       }
     } else {
       dragInfo.isDragging = false;

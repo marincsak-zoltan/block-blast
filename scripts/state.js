@@ -8,6 +8,7 @@ export let grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0)
 export let gameState = {
   score: 0,
   comboCount: 0,
+  comboMovesLeft: 3, // Hátralévő lépések száma a kombó elvesztéséig
   isStarted: false,
   isGameOver: false,
   isAnimating: false,
@@ -68,6 +69,7 @@ export function resetState() {
   }
   gameState.score = 0;
   gameState.comboCount = 0;
+  gameState.comboMovesLeft = 3;
   gameState.isGameOver = false;
   gameState.isStarted = true;
   spawnNewPieces();
