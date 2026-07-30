@@ -19,17 +19,17 @@ body {
   touch-action: none;
 }
 
-/* NÉMÍTÓ GOMB (JOBB FELSŐ SAROK) */
+/* NÉMÍTÓ GOMB (JOBB FELSŐ SAROK - KISEBB MÉRET) */
 .icon-btn {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 12px;
+  right: 12px;
   background: rgba(255, 255, 255, 0.25);
   border: none;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  font-size: 20px;
+  width: 34px;          /* 44px-ről csökkentve 34px-re */
+  height: 34px;
+  font-size: 15px;      /* Az ikon mérete is finomabb lett */
   cursor: pointer;
   display: flex;
   align-items: center;

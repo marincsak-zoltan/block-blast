@@ -1,5 +1,0 @@
-background color: #ffb3c7
-field color: #774046
-border color: #89656a
-block image: the_object.png
-
