@@ -6,6 +6,7 @@ const ASSETS = [
   './hellokitty.png',
   './happykitty.png',
   './the_object.png',
+  './icon.png',
   './gradient_horizontal.png',
   './gradient_vertical.png',
   './scripts/main.js',
