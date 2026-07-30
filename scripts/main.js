@@ -393,3 +393,10 @@ window.addEventListener('resize', resizeCanvas);
 spawnNewPieces();
 resizeCanvas();
 updateHighScoreUI();
+
+// Service Worker regisztrálása a PWA-hoz
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch((err) => {
+    console.log('SW registration failed:', err);
+  });
+}

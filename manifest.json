@@ -1,0 +1,17 @@
+{
+  "short_name": "Block Blast",
+  "name": "Block Blast Hello Kitty Edition",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#ffb3c7",
+  "theme_color": "#ffb3c7",
+  "display": "standalone",
+  "orientation": "portrait"
+}
