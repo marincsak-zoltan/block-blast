@@ -355,15 +355,13 @@ async function handleEnd() {
         gameState.isGameOver = true;
         finalScoreElement.textContent = gameState.score;
 
-        // 🎲 RANDOM GAME OVER ÜZENET KISORSOLÁSA
+        // 🎲 RANDOM GAME OVER ÜZENET
         if (gameOverTextElement) {
           const randomIndex = Math.floor(Math.random() * GAME_OVER_MESSAGES.length);
           gameOverTextElement.textContent = `"${GAME_OVER_MESSAGES[randomIndex]}"`;
         }
 
         gameOverModal.classList.remove('hidden');
-
-        // 🔊 GAME OVER HANG
         playGameOverSound();
       }
     } else {
