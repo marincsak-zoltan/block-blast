@@ -54,15 +54,12 @@ echo.
 echo --------------------------------------------
 echo 2. Switch to MAIN, MERGE and PUSH ORIGIN MAIN
 echo --------------------------------------------
-git checkout main
-git merge dev
-git push origin main
-
-echo.
-echo --------------------------------------------
-echo 3. Switch back to DEV branch
-echo --------------------------------------------
-git checkout dev
+(
+  git checkout main
+  git merge dev
+  git push origin main
+  git checkout dev
+)
 
 echo.
 echo ============================================
