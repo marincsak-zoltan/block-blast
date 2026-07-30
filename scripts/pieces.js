@@ -1,37 +1,43 @@
-// --- ALAKZATOK CSOPORTOSÍTVA NEHÉZSÉG SZERINT ---
-
+// --- KATEGÓRIÁK ÉS ALAKZATOK ---
 export const PIECE_CATEGORIES = {
-  // 🟢 KÖNNYŰ (Kicsi, könnyen lerakható elemek)
-  EASY: [
-    { piece: [[1]], name: 'dot' },
-    { piece: [[1, 1]], name: 'line2h' },
-    { piece: [[1], [1]], name: 'line2v' },
-    { piece: [[1, 0], [1, 1]], name: 'smallL1' },
-    { piece: [[0, 1], [1, 1]], name: 'smallL2' },
-    { piece: [[1, 1], [1, 1]], name: 'square2x2' }
+  // ALAP ALAKZATOK (Gyakoriak)
+  BASIC: [
+    { piece: [[1, 1], [1, 1]], weight: 25 },               // 2x2
+    { piece: [[1, 1, 1], [1, 1, 1], [1, 1, 1]], weight: 15 },// 3x3
+    { piece: [[1, 0], [1, 0], [1, 1]], weight: 20 },       // L
+    { piece: [[0, 1], [0, 1], [1, 1]], weight: 20 },
+    { piece: [[1, 1, 1], [1, 0, 0]], weight: 20 },
+    { piece: [[1, 1, 1], [0, 0, 1]], weight: 20 },
+    { piece: [[1, 1, 1], [0, 1, 0]], weight: 20 },       // T
+    { piece: [[1, 1, 0], [0, 1, 1]], weight: 15 },       // Z / S
+    { piece: [[0, 1, 1], [1, 1, 0]], weight: 15 }
   ],
 
-  // 🟡 NORMÁL (Közepes méretű alap alakzatok)
-  MEDIUM: [
-    { piece: [[1, 1, 1]], name: 'line3h' },
-    { piece: [[1], [1], [1]], name: 'line3v' },
-    { piece: [[1, 1, 1, 1]], name: 'line4h' },
-    { piece: [[1], [1], [1], [1]], name: 'line4v' },
-    { piece: [[1, 0], [1, 0], [1, 1]], name: 'L1' },
-    { piece: [[0, 1], [0, 1], [1, 1]], name: 'L2' },
-    { piece: [[1, 1, 1], [0, 1, 0]], name: 'T1' },
-    { piece: [[1, 1, 0], [0, 1, 1]], name: 'Z1' }
-  ],
+  // EGYENESEK (Vízszintes / Függőleges)
+  LINES: {
+    HORIZ: [
+      { piece: [[1, 1, 1]], weight: 20 },
+      { piece: [[1, 1, 1, 1]], weight: 20 },
+      { piece: [[1, 1, 1, 1, 1]], weight: 10 }
+    ],
+    VERT: [
+      { piece: [[1], [1], [1]], weight: 20 },
+      { piece: [[1], [1], [1], [1]], weight: 20 },
+      { piece: [[1], [1], [1], [1], [1]], weight: 10 }
+    ]
+  },
 
-  // 🔴 NEHÉZ (Nagy terjedelmű vagy trükkös átlós elemek)
-  HARD: [
-    { piece: [[1, 1, 1], [1, 1, 1], [1, 1, 1]], name: 'square3x3' },
-    { piece: [[1, 0], [0, 1]], name: 'diag2_1' },
-    { piece: [[0, 1], [1, 0]], name: 'diag2_2' },
-    { piece: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], name: 'diag3_1' },
-    { piece: [[0, 0, 1], [0, 1, 0], [1, 0, 0]], name: 'diag3_2' },
-    { piece: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], name: 'diag4_1' },
-    { piece: [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]], name: 'diag4_2' }
+  // RITKA ELEMEK (Drasztikusan lecsökkentett súlyok!)
+  RARE: [
+    { piece: [[1]], weight: 1 },                           // 1-es négyzet
+    { piece: [[1, 1]], weight: 2 },                        // 2-es egyenes H
+    { piece: [[1], [1]], weight: 2 },                      // 2-es egyenes V
+    { piece: [[1, 0], [0, 1]], weight: 1 },                // 2-es átló
+    { piece: [[0, 1], [1, 0]], weight: 1 },
+    { piece: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], weight: 1 }, // 3-as átló
+    { piece: [[0, 0, 1], [0, 1, 0], [1, 0, 0]], weight: 1 },
+    { piece: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], weight: 1 }, // 4-es átló
+    { piece: [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]], weight: 1 }
   ]
 };
 

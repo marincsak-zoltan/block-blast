@@ -1,17 +1,17 @@
 // --- MOBILBARÁT AUDIO POOL ÉS UNLOCK ---
 
-// Előre betöltött hangok gyűjteménye
+// --- JAVÍTOTT ÚTVONALAK GITHUB PAGES-HEZ ---
 const sounds = {
-  place: [new Audio('../sounds/place.mp3'), new Audio('../sounds/place.mp3')],
-  gameOver: new Audio('../sounds/game_over.mp3'),
+  place: [new Audio('sounds/place.mp3'), new Audio('sounds/place.mp3')],
+  gameOver: new Audio('sounds/game_over.mp3'),
   wooshes: [
-    new Audio('../sounds/woosh1.mp3'),
-    new Audio('../sounds/woosh2.mp3'),
-    new Audio('../sounds/woosh3.mp3')
+    new Audio('sounds/woosh1.mp3'),
+    new Audio('sounds/woosh2.mp3'),
+    new Audio('sounds/woosh3.mp3')
   ],
   combos: Array.from({ length: 10 }, (_, i) => [
-    new Audio(`../sounds/combo${i + 1}.mp3`),
-    new Audio(`../sounds/combo${i + 1}.mp3`)
+    new Audio(`sounds/combo${i + 1}.mp3`),
+    new Audio(`sounds/combo${i + 1}.mp3`)
   ])
 };
 

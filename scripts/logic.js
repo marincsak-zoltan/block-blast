@@ -69,13 +69,26 @@ export function getSimulatedLineClears(piece, startRow, startCol) {
   return { fullRows, fullCols };
 }
 
+// Alap lerakási pont: 10 pont cellánként
 export function countPieceBlocks(piece) {
-  return piece.flat().filter(cell => cell === 1).length;
+  let count = 0;
+  for (let r = 0; r < piece.length; r++) {
+    for (let c = 0; c < piece[0].length; c++) {
+      if (piece[r][c] === 1) count++;
+    }
+  }
+  return count * 10;
 }
 
-export function getBasicClearScore(linesCount) {
-  const scores = { 1: 10, 2: 20, 3: 60, 4: 120, 5: 200 };
-  return scores[linesCount] || (linesCount > 5 ? 200 + (linesCount - 5) * 100 : 0);
+// Nagyobb pontok a sor/oszlop kiütésekért!
+export function getBasicClearScore(clearedLinesCount) {
+  switch (clearedLinesCount) {
+    case 1: return 100;
+    case 2: return 300;
+    case 3: return 700;
+    case 4: return 1500;
+    default: return clearedLinesCount * 500;
+  }
 }
 
 export function checkGameOver() {
