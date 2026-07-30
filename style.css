@@ -118,6 +118,13 @@ body {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
+#gameover-text {
+  font-size: 1.1rem;
+  font-style: italic;
+  margin: 5px 0 10px 0;
+  text-align: center;
+}
+
 /* Alsó kártyák */
 .pieces-container {
   display: flex;

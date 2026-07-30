@@ -20,6 +20,16 @@ const muteBtn = document.getElementById('mute-btn');
 const pieceCanvases = [0, 1, 2].map(i => document.getElementById(`piece${i}`));
 const pieceCtxs = pieceCanvases.map(c => c.getContext('2d'));
 
+const gameOverTextElement = document.getElementById('gameover-text');
+
+// Véletlenszerű Game Over üzenetek
+const GAME_OVER_MESSAGES = [
+  "Róza te amatőr",
+  "Előtte se volt annyira szuper",
+  "Már el is ment?",
+  "Mindig ott vagy ahol mi nem"
+];
+
 // Képek betöltése
 const blockImage = new Image(); blockImage.src = 'the_object.png';
 const gradHorizImage = new Image(); gradHorizImage.src = 'gradient_horizontal.png';
@@ -344,7 +354,16 @@ async function handleEnd() {
       if (checkGameOver()) {
         gameState.isGameOver = true;
         finalScoreElement.textContent = gameState.score;
+
+        // 🎲 RANDOM GAME OVER ÜZENET KISORSOLÁSA
+        if (gameOverTextElement) {
+          const randomIndex = Math.floor(Math.random() * GAME_OVER_MESSAGES.length);
+          gameOverTextElement.textContent = `"${GAME_OVER_MESSAGES[randomIndex]}"`;
+        }
+
         gameOverModal.classList.remove('hidden');
+
+        // 🔊 GAME OVER HANG
         playGameOverSound();
       }
     } else {
