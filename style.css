@@ -62,9 +62,27 @@ body {
 
 /* Pálya kerettel */
 .board-wrapper {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* Hello Kitty pozicionálása */
+#kitty-mascot {
+  position: absolute;
+  top: -55px;          /* Mivel nagyobb lett, kicsit feljebb tolhatjuk (próbáld ki pl. -50px és -60px között) */
+  right: 4px;          /* Jobb szélétől való távolság */
+  width: 95px;         /* 75px-ről megnöveltük 95px-re (vagy akár 100px-re) */
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  transition: transform 0.15s ease;
+}
+
+/* Egy kis cuki animáció, amikor boldog */
+#kitty-mascot.happy {
+  transform: scale(1.15) rotate(5deg);
 }
 
 #gameCanvas {

@@ -13,6 +13,7 @@ const finalScoreElement = document.getElementById('final-score');
 const restartBtn = document.getElementById('restart-btn');
 const startGameModal = document.getElementById('start-game-modal');
 const startBtn = document.getElementById('start-btn');
+const kittyMascot = document.getElementById('kitty-mascot');
 
 const pieceCanvases = [0, 1, 2].map(i => document.getElementById(`piece${i}`));
 const pieceCtxs = pieceCanvases.map(c => c.getContext('2d'));
@@ -21,6 +22,7 @@ const pieceCtxs = pieceCanvases.map(c => c.getContext('2d'));
 const blockImage = new Image(); blockImage.src = 'the_object.png';
 const gradHorizImage = new Image(); gradHorizImage.src = 'gradient_horizontal.png';
 const gradVertImage = new Image(); gradVertImage.src = 'gradient_vertical.png';
+
 
 let loaded = 0;
 const onLoad = () => { if (++loaded === 3) drawAll(); };
@@ -197,6 +199,20 @@ function drawPieces() {
   });
 }
 
+function triggerKittyHappy() {
+  if (!kittyMascot) return;
+  
+  // Átváltunk a csukott szeműre és meglódítjuk a képet
+  kittyMascot.src = 'happykitty.png';
+  kittyMascot.classList.add('happy');
+
+  // 1000 ms múlva visszaváltunk a normál nyitott szeműre
+  setTimeout(() => {
+    kittyMascot.src = 'hellokitty.png';
+    kittyMascot.classList.remove('happy');
+  }, 1000);
+}
+
 function drawAll() {
   drawGrid();
   drawPieces();
@@ -274,7 +290,11 @@ async function handleEnd() {
 
       const lineClearResult = clearFullLines();
       if (lineClearResult.clearedLinesCount > 0) {
-        // 🔊 KOMBÓ HANG LEJÁTSZÁSA (A törlési animáció előtt)
+
+        // 🐱 CICA ÁTVÁLTÁSA BECSUKOTT SZEMŰRE!
+        triggerKittyHappy();
+
+        // 🔊 KOMBÓ HANG LEJÁTSZÁSA
         playComboSound(gameState.comboCount + 1);
 
         await animateLineClears(lineClearResult.fullRows, lineClearResult.fullCols);
