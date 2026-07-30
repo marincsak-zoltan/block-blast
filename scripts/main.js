@@ -1,4 +1,4 @@
-import { GRID_SIZE, grid, gameState, dragInfo, currentPieces, spawnNewPieces, checkSpawnNextRound, resetState } from './state.js';
+import { GRID_SIZE, grid, gameState, dragInfo, currentPieces, spawnNewPieces, checkSpawnNextRound, resetState, updateHighScore } from './state.js';
 import { canPlacePiece, placePiece, clearFullLines, getSimulatedLineClears, countPieceBlocks, getBasicClearScore, checkGameOver } from './logic.js';
 import { unlockAudio, playWooshSound, playPlaceSound, playComboSound, playGameOverSound, toggleMute } from './audio.js';
 
@@ -14,6 +14,8 @@ const restartBtn = document.getElementById('restart-btn');
 const startGameModal = document.getElementById('start-game-modal');
 const startBtn = document.getElementById('start-btn');
 const kittyMascot = document.getElementById('kitty-mascot');
+const highScoreElement = document.getElementById('high-score');
+const muteBtn = document.getElementById('mute-btn');
 
 const pieceCanvases = [0, 1, 2].map(i => document.getElementById(`piece${i}`));
 const pieceCtxs = pieceCanvases.map(c => c.getContext('2d'));
@@ -23,19 +25,15 @@ const blockImage = new Image(); blockImage.src = 'the_object.png';
 const gradHorizImage = new Image(); gradHorizImage.src = 'gradient_horizontal.png';
 const gradVertImage = new Image(); gradVertImage.src = 'gradient_vertical.png';
 
-
 let loaded = 0;
 const onLoad = () => { if (++loaded === 3) drawAll(); };
 blockImage.onload = onLoad; gradHorizImage.onload = onLoad; gradVertImage.onload = onLoad;
 
 function getBoardCellFromCoords(clientX, clientY, piece) {
   const rect = canvas.getBoundingClientRect();
-  // Kiszámoljuk a CSS pixel és a vászon belső pixelje közötti arányt
   const scale = canvas.width / rect.width;
-  
   const yOffset = gameState.cellSize * 1.5;
 
-  // A kattintás/érintés pozíciója a vászon belső koordináta-rendszerében:
   const canvasX = (clientX - rect.left) * scale;
   const canvasY = ((clientY - yOffset) - rect.top) * scale;
 
@@ -68,7 +66,6 @@ function resizeCanvas() {
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // A) Alap rács és lehelyezett blokkok rajzolása
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < GRID_SIZE; c++) {
       const px = c * gameState.cellSize;
@@ -85,25 +82,21 @@ function drawGrid() {
     }
   }
 
-  // B) HÚZÁS KÖZBENI ELEMEK (Pulzáló csík + Árnyék) KÖZVETLENÜL A RÁCSRA
   if (dragInfo.isDragging && dragInfo.index !== null) {
     const piece = currentPieces[dragInfo.index];
     if (piece) {
       const { row, col } = getBoardCellFromCoords(dragInfo.x, dragInfo.y, piece);
       const valid = canPlacePiece(piece, row, col);
 
-      // B.1) PULZÁLÓ STRIP-EK (Gradiens csíkok a teli sorokra/oszlopokra)
       if (valid) {
         const { fullRows, fullCols } = getSimulatedLineClears(piece, row, col);
         ctx.save();
         ctx.globalAlpha = 0.7 + 0.25 * Math.sin(Date.now() / 150);
 
-        // Sorok (Tűpontosan a rács belső pixeljeire)
         fullRows.forEach(r => {
           ctx.drawImage(gradHorizImage, 0, r * gameState.cellSize, GRID_SIZE * gameState.cellSize, gameState.cellSize);
         });
 
-        // Oszlopok
         fullCols.forEach(c => {
           ctx.drawImage(gradVertImage, c * gameState.cellSize, 0, gameState.cellSize, GRID_SIZE * gameState.cellSize);
         });
@@ -111,7 +104,6 @@ function drawGrid() {
         ctx.restore();
       }
 
-      // B.2) SHADOW / ELŐNÉZET (A rácson)
       if (valid) {
         ctx.save();
         ctx.globalAlpha = 0.45;
@@ -124,7 +116,6 @@ function drawGrid() {
               if (targetRow >= 0 && targetRow < GRID_SIZE && targetCol >= 0 && targetCol < GRID_SIZE) {
                 const px = targetCol * gameState.cellSize;
                 const py = targetRow * gameState.cellSize;
-
                 ctx.drawImage(blockImage, px, py, gameState.cellSize, gameState.cellSize);
               }
             }
@@ -144,9 +135,8 @@ function drawDragOverlay() {
   const piece = currentPieces[dragInfo.index];
   if (!piece) return;
 
-  // Az alakzat kirajzolása a megfogott ujj/kurzor pozíciójában
   const rect = canvas.getBoundingClientRect();
-  const displayCellSize = rect.width / GRID_SIZE; // A látható cellaméret a képernyőn
+  const displayCellSize = rect.width / GRID_SIZE;
 
   const yOffset = displayCellSize * 1.5;
   const startX = dragInfo.x - (piece[0].length * displayCellSize) / 2;
@@ -170,7 +160,7 @@ function drawDragOverlay() {
 
   if (dragInfo.isDragging) {
     requestAnimationFrame(() => {
-      drawGrid(); // Folyamatosan frissítjük a pulzálást a fő rácson is!
+      drawGrid();
       drawDragOverlay();
     });
   }
@@ -201,12 +191,9 @@ function drawPieces() {
 
 function triggerKittyHappy() {
   if (!kittyMascot) return;
-  
-  // Átváltunk a csukott szeműre és meglódítjuk a képet
   kittyMascot.src = 'happykitty.png';
   kittyMascot.classList.add('happy');
 
-  // 1000 ms múlva visszaváltunk a normál nyitott szeműre
   setTimeout(() => {
     kittyMascot.src = 'hellokitty.png';
     kittyMascot.classList.remove('happy');
@@ -230,11 +217,51 @@ async function animateLineClears(fullRows, fullCols) {
   gameState.isAnimating = false;
 }
 
+// --- JAVÍTOTT PÖRGŐ PONTSZÁM ANIMÁCIÓ ---
+let displayedScore = 0;
+let scoreAnimationId = null;
+
+function animateScore() {
+  const targetScore = gameState.score;
+
+  if (displayedScore < targetScore) {
+    const diff = targetScore - displayedScore;
+    const step = Math.max(1, Math.ceil(diff * 0.15));
+    
+    displayedScore += step;
+
+    if (displayedScore > targetScore) {
+      displayedScore = targetScore;
+    }
+
+    if (scoreElement) scoreElement.textContent = displayedScore;
+
+    if (displayedScore < targetScore) {
+      scoreAnimationId = requestAnimationFrame(animateScore);
+    }
+  } else {
+    displayedScore = targetScore;
+    if (scoreElement) scoreElement.textContent = displayedScore;
+  }
+}
+
+function updateScoreUI() {
+  if (scoreAnimationId) {
+    cancelAnimationFrame(scoreAnimationId);
+  }
+  scoreAnimationId = requestAnimationFrame(animateScore);
+}
+
+function updateHighScoreUI() {
+  if (highScoreElement) {
+    highScoreElement.textContent = gameState.highScore;
+  }
+}
+
 // Eseménykezelők
 function handleStart(clientX, clientY, index) {
   if (!gameState.isStarted || gameState.isGameOver || gameState.isAnimating || currentPieces[index] === null) return;
   
-  // 🔓 FELÉBRESZTJÜK AZ AUDIÓT AZ ELSŐ ÉRINTÉSNÉL!
   unlockAudio();
 
   dragInfo.isDragging = true;
@@ -242,25 +269,21 @@ function handleStart(clientX, clientY, index) {
   dragInfo.x = clientX;
   dragInfo.y = clientY;
 
-  // 🔊 RANDOM WOOSH HANG
   playWooshSound();
-
   drawAll();
 }
 
-const muteBtn = document.getElementById('mute-btn');
-
-muteBtn.addEventListener('click', () => {
-  const muted = toggleMute();
-  
-  // Ikon és stílus frissítése a gombra
-  muteBtn.textContent = muted ? '🔇' : '🔊';
-  if (muted) {
-    muteBtn.classList.add('muted');
-  } else {
-    muteBtn.classList.remove('muted');
-  }
-});
+if (muteBtn) {
+  muteBtn.addEventListener('click', () => {
+    const muted = toggleMute();
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+    if (muted) {
+      muteBtn.classList.add('muted');
+    } else {
+      muteBtn.classList.remove('muted');
+    }
+  });
+}
 
 function handleMove(clientX, clientY) {
   if (!dragInfo.isDragging) return;
@@ -290,11 +313,7 @@ async function handleEnd() {
 
       const lineClearResult = clearFullLines();
       if (lineClearResult.clearedLinesCount > 0) {
-
-        // 🐱 CICA ÁTVÁLTÁSA BECSUKOTT SZEMŰRE!
         triggerKittyHappy();
-
-        // 🔊 KOMBÓ HANG LEJÁTSZÁSA
         playComboSound(gameState.comboCount + 1);
 
         await animateLineClears(lineClearResult.fullRows, lineClearResult.fullCols);
@@ -305,9 +324,7 @@ async function handleEnd() {
         gameState.comboCount++;
         gameState.comboMovesLeft = 3;
       } else {
-        // 🔊 SIMA LERAKÁSI HANG (Ha nem volt törlés)
         playPlaceSound();
-
         gameState.comboMovesLeft--;
         if (gameState.comboMovesLeft <= 0) {
           gameState.comboCount = 0;
@@ -315,15 +332,19 @@ async function handleEnd() {
         }
       }
 
-      scoreElement.textContent = gameState.score;
+      // Pontszám pörgetve frissítése
+      updateScoreUI();
+
+      if (updateHighScore()) {
+        updateHighScoreUI();
+      }
+
       checkSpawnNextRound();
 
       if (checkGameOver()) {
         gameState.isGameOver = true;
         finalScoreElement.textContent = gameState.score;
         gameOverModal.classList.remove('hidden');
-
-        // 🔊 GAME OVER HANG
         playGameOverSound();
       }
     } else {
@@ -360,7 +381,8 @@ startBtn.addEventListener('click', () => {
 
 restartBtn.addEventListener('click', () => {
   resetState();
-  scoreElement.textContent = 0;
+  displayedScore = 0;
+  if (scoreElement) scoreElement.textContent = 0;
   gameOverModal.classList.add('hidden');
   startGameModal.classList.add('hidden');
   drawAll();
@@ -370,3 +392,4 @@ window.addEventListener('resize', resizeCanvas);
 
 spawnNewPieces();
 resizeCanvas();
+updateHighScoreUI();

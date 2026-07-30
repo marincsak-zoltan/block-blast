@@ -6,6 +6,7 @@ export let grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0)
 
 export let gameState = {
   score: 0,
+  highScore: parseInt(localStorage.getItem('blockBlast_highScore')) || 0, // Betöltés LocalStorage-ból
   comboCount: 0,
   comboMovesLeft: 3,
   isStarted: false,
@@ -200,4 +201,14 @@ export function resetState() {
   gameState.isStarted = true;
   horizLinesCount = 0;
   spawnNewPieces();
+}
+
+// Segédfüggvény a rekord frissítésére és mentésére
+export function updateHighScore() {
+  if (gameState.score > gameState.highScore) {
+    gameState.highScore = gameState.score;
+    localStorage.setItem('blockBlast_highScore', gameState.highScore);
+    return true; // Visszaadja, ha ÚJ REKORD született!
+  }
+  return false;
 }

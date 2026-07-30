@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,19 +7,20 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Mute / Unmute Gomb -->
-  <button id="mute-btn" class="icon-btn" aria-label="Turn off sounds">🔊</button>
+  <!-- Mute / Unmute Gomb a jobb felső sarokban -->
+  <button id="mute-btn" class="icon-btn" aria-label="Hangok ki/bekapcsolása">🔊</button>
 
-  <!-- Pontszám kijelző -->
-  <div class="score-container">
-    <span id="score">0</span>
+  <!-- FELSŐ FEJLÉC ZÓNA: BALRA SÁRGA HIGH SCORE, KÖZÉPEN FEHÉR PONTSZÁM -->
+  <div class="header-zone">
+    <span id="high-score">0</span>
+    <div class="score-board">
+      <span id="score">0</span>
+    </div>
   </div>
 
-  <!-- FŐ JÁTÉKMEZŐ -->
+  <!-- FŐ JÁTÉKMEZŐ A HELLO KITTY-VEL -->
   <div class="board-wrapper">
-    <!-- Hello Kitty Maszkot / Kukucskáló figurát ide tesszük -->
     <img id="kitty-mascot" src="hellokitty.png" alt="Hello Kitty Mascot" />
-    
     <canvas id="gameCanvas"></canvas>
   </div>
 
@@ -33,25 +34,16 @@
   <!-- Fullscreen lebegő canvas a húzáshoz -->
   <canvas id="dragCanvas"></canvas>
 
-  <!-- START GAME OVERLAY (Indítás előtti ablak) -->
+  <!-- START GAME OVERLAY -->
   <div id="start-game-modal" class="modal">
     <div class="modal-content">
       <h2>Block Blast</h2>
-      <p>Welcome!</p>
+      <p>Üdvözöllek!</p>
       <button id="start-btn">Start Game</button>
     </div>
   </div>
 
   <!-- GAME OVER OVERLAY -->
-  <div id="game-over-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Game Over</h2>
-      <p>Score: <span id="final-score">0</span></p>
-      <button id="restart-btn">New Game</button>
-    </div>
-  </div>
-
-  <!-- GAME OVER OVERLAY (Középen a board felett) -->
   <div id="game-over-modal" class="modal hidden">
     <div class="modal-content">
       <h2>Game Over</h2>

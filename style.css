@@ -13,24 +13,18 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  /* 100vh helyett 100dvh (dynamic viewport height) a mobil böngészősávok miatt */
   min-height: 100dvh; 
-  padding: 10px 0 20px 0; /* Alsó margó a böngészősáv felett */
+  padding: 10px 0 20px 0;
   overflow: hidden;
   touch-action: none;
 }
 
-/* Pontszám */
-.score-container {
-  margin-top: 10px;
-  text-align: center;
-}
-
+/* NÉMÍTÓ GOMB (JOBB FELSŐ SAROK) */
 .icon-btn {
   position: absolute;
   top: 15px;
   right: 15px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   border: none;
   border-radius: 50%;
   width: 44px;
@@ -53,14 +47,47 @@ body {
   opacity: 0.6;
 }
 
-#score {
-  font-size: 3rem;
-  font-weight: 800;
-  color: #fff5f7;
-  text-shadow: 0 2px 8px rgba(119, 64, 70, 0.4);
+/* FELSŐ FEJLÉC ZÓNA ELRENDEZÉS */
+.header-zone {
+  position: relative;
+  width: 100%;
+  max-width: 400px; /* A játékmező szélességéhez igazítva */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  min-height: 60px;
 }
 
-/* Pálya kerettel */
+/* SÁRGÁN RAGYOGÓ TALPAS HIGH SCORE (KISEBB ÉS FELJEBB TOLVA) */
+#high-score {
+  position: absolute;
+  left: 5px;
+  top: 0px;                              /* Feljebb tolva a tetejéhez */
+  font-size: 20px;                       /* Kisebb, finomabb betűméret */
+  font-weight: 700;
+  color: #ffd700;                        /* Arany / Sárga szín */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* 👑 KORONA EMOJI A HIGH SCORE ELŐTT */
+#high-score::before {
+  content: '👑 ';
+  font-size: 16px;
+  margin-right: 2px;
+  /* Visszaállítjuk a normál betűtípust az emojinak, hogy minden eszközön szépen jelenjen meg */
+  font-family: system-ui, -apple-system, sans-serif; 
+}
+
+/* PONTSZÁM KÖZÉPEN */
+.score-board #score {
+  font-size: 48px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 3px 6px rgba(119, 64, 70, 0.4);
+}
+
+/* PÁLYA KERETTEL */
 .board-wrapper {
   position: relative;
   display: flex;
@@ -71,16 +98,15 @@ body {
 /* Hello Kitty pozicionálása */
 #kitty-mascot {
   position: absolute;
-  top: -55px;          /* Mivel nagyobb lett, kicsit feljebb tolhatjuk (próbáld ki pl. -50px és -60px között) */
-  right: 4px;          /* Jobb szélétől való távolság */
-  width: 95px;         /* 75px-ről megnöveltük 95px-re (vagy akár 100px-re) */
+  top: -55px;
+  right: 4px;
+  width: 95px;
   height: auto;
   z-index: 10;
   pointer-events: none;
   transition: transform 0.15s ease;
 }
 
-/* Egy kis cuki animáció, amikor boldog */
 #kitty-mascot.happy {
   transform: scale(1.15) rotate(5deg);
 }
@@ -99,7 +125,7 @@ body {
   align-items: center;
   width: 100%;
   max-width: 400px;
-  height: 110px; /* Enyhén csökkentett magasság a biztos illeszkedésért */
+  height: 110px;
   padding: 0 10px;
   margin-bottom: 10px;
 }
@@ -116,8 +142,8 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  pointer-events: none; /* Átengedi a touch/click eseményeket az alatta lévő elemeknek */
-  z-index: 9999;        /* Garantáltan legfelül van minden felett */
+  pointer-events: none;
+  z-index: 9999;
 }
 
 /* GAME OVER OVERLAY & MODAL STÍLUSOK */
@@ -127,8 +153,8 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.45); /* Enyhe sötétítés a háttéren */
-  backdrop-filter: blur(4px);            /* Finom elmosás a játékterületen */
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -143,7 +169,6 @@ body {
   pointer-events: none;
 }
 
-/* Modális ablak kártyája */
 .modal-content {
   background-color: #774046;
   border: 3px solid #89656a;
@@ -174,7 +199,6 @@ body {
   opacity: 0.95;
 }
 
-/* KÖZÖS GOMB STÍLUS (Start Game & New Game) */
 #start-btn, 
 #restart-btn {
   margin-top: 10px;
@@ -188,21 +212,17 @@ body {
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  
-  /* 3D alsó perem/árnyék hatás */
   box-shadow: 0 6px 0 #d9c5c9, 0 10px 15px rgba(0, 0, 0, 0.25);
   transition: all 0.1s ease;
   position: relative;
   top: 0;
 }
 
-/* Hover effektek (egérrel) */
 #start-btn:hover, 
 #restart-btn:hover {
   background-color: #ffffff;
 }
 
-/* Megnyomás effektus (Kattintáskor vagy mobilon érintéskor lejjebb süllyed) */
 #start-btn:active, 
 #restart-btn:active {
   top: 4px;
