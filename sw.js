@@ -1,24 +1,38 @@
-const CACHE_NAME = 'block-blast-v2.2';
+const CACHE_NAME = 'block-blast-v2.3';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './manifest.json',
+  './icon.png',
   './hellokitty.png',
   './happykitty.png',
   './the_object.png',
-  './icon.png',
   './gradient_horizontal.png',
   './gradient_vertical.png',
   './scripts/main.js',
   './scripts/state.js',
   './scripts/logic.js',
-  './scripts/pieces.js',
   './scripts/audio.js',
-  './sounds/place.mp3',
-  './sounds/game_over.mp3',
+  
+  // 🔊 HANGEFFEKTEK (Alap hangok)
   './sounds/woosh1.mp3',
   './sounds/woosh2.mp3',
-  './sounds/woosh3.mp3'
+  './sounds/woosh3.mp3',
+  './sounds/place.mp3',
+  './sounds/game_over.mp3',
+
+  // 🎵 KOMBÓ HANGOK (1-10)
+  './sounds/combo1.mp3',
+  './sounds/combo2.mp3',
+  './sounds/combo3.mp3',
+  './sounds/combo4.mp3',
+  './sounds/combo5.mp3',
+  './sounds/combo6.mp3',
+  './sounds/combo7.mp3',
+  './sounds/combo8.mp3',
+  './sounds/combo9.mp3',
+  './sounds/combo10.mp3'
 ];
 
 self.addEventListener('install', (e) => {

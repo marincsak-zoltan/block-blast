@@ -232,7 +232,7 @@ body {
 /* GOMBOK STÍLUSA ÉS ELREJTÉSE */
 #start-btn, 
 #restart-btn {
-  padding: 16px 44px;
+  padding: 18px 48px;
   font-size: 1.35rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -243,18 +243,23 @@ body {
   border-radius: 16px;
   cursor: pointer;
   box-shadow: 0 6px 0 #d9c5c9, 0 10px 20px rgba(0, 0, 0, 0.3);
-  transition: transform 0.1s ease, opacity 0.3s ease;
+  
+  /* Pop-up animáció: 0.8 mp rugalmas beugrás */
+  transform: scale(1);
+  opacity: 1;
+  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+              opacity 0.8s ease;
 }
 
 #start-btn:active, 
 #restart-btn:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 #d9c5c9, 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(0.95) translateY(4px);
 }
 
-/* GOMB REJTÉSE A PÖRGÉS IDEJÉRE */
+/* GOMB REJTÉSE A PÖRGÉS IDEJÉRE (AZONNALI ELTŰNÉS TRANSITION NÉLKÜL) */
 .btn-hidden {
   opacity: 0 !important;
+  transform: scale(0) !important;
   pointer-events: none !important;
-  transform: scale(0.8);
+  transition: none !important; /* <--- Ez a kulcs! Megakadályozza az eltűnési animációt */
 }

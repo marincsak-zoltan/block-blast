@@ -267,9 +267,8 @@ function updateHighScoreUI() {
   }
 }
 
-// LASSABB, DÁRMÁIABB PONTSZÁM PÖRGÉS
+// PONTOSAN 4 MÁSODPERCIG TARTÓ, LÁGYAN LEFÉKEZŐ PONTSZÁM PÖRGÉS
 function animateFinalScore(targetScore, onComplete) {
-  let current = 0;
   finalScoreElement.textContent = 0;
 
   if (targetScore === 0) {
@@ -277,21 +276,24 @@ function animateFinalScore(targetScore, onComplete) {
     return;
   }
 
-  function stepAnimation() {
-    const diff = targetScore - current;
-    
-    // A 0.025-ös szorzó lassabb pörgést ad, a Math.min pedig megelőzi, 
-    // hogy a nagyon magas pontszámoknál túl nagyokat ugorjon a számláló
-    const step = Math.max(1, Math.min(Math.ceil(diff * 0.04), 15)); 
-    current += step;
+  const DURATION = 4000; // 4 másodperces pörgés
+  const startTime = performance.now();
 
-    if (current >= targetScore) {
-      current = targetScore;
-      finalScoreElement.textContent = current;
-      if (onComplete) onComplete();
-    } else {
-      finalScoreElement.textContent = current;
+  function stepAnimation(currentTime) {
+    const elapsedTime = currentTime - startTime;
+    const progress = Math.min(elapsedTime / DURATION, 1);
+
+    // Ease-out lefékezés a végén
+    const easeOutProgress = 1 - Math.pow(1 - progress, 3);
+
+    const currentScore = Math.floor(easeOutProgress * targetScore);
+    finalScoreElement.textContent = currentScore;
+
+    if (progress < 1) {
       requestAnimationFrame(stepAnimation);
+    } else {
+      finalScoreElement.textContent = targetScore;
+      if (onComplete) onComplete();
     }
   }
 
@@ -402,15 +404,18 @@ async function handleEnd() {
           gameOverTextElement.textContent = `"${GAME_OVER_MESSAGES[randomIndex]}"`;
         }
 
-        // Gomb elrejtése a pörgés idejére
+        // 4. A gomb elrejtése a pörgés és a szünet idejére
         restartBtn.classList.add('btn-hidden');
         gameOverModal.classList.remove('hidden');
 
         playGameOverSound();
 
-        // Pontszám pörgetése 0-ról, gomb megjelenítése a végén
+        // 5. Pontszám pörgetése 4 mp-ig...
         animateFinalScore(gameState.score, () => {
-          restartBtn.classList.remove('btn-hidden');
+          // ...majd 0.5 mp (500 ms) drámai szünet után beugrik a gomb!
+          setTimeout(() => {
+            restartBtn.classList.remove('btn-hidden');
+          }, 500);
         });
       }
     } else {
@@ -446,6 +451,7 @@ startBtn.addEventListener('click', () => {
 });
 
 restartBtn.addEventListener('click', () => {
+  restartBtn.classList.add('btn-hidden'); // Azonnal elrejtjük a következő körre
   resetState();
   displayedScore = 0;
   if (scoreElement) scoreElement.textContent = 0;
