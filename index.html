@@ -21,7 +21,7 @@
   <!-- Mute / Unmute Gomb a jobb felső sarokban -->
   <button id="mute-btn" class="icon-btn" aria-label="Hangok ki/bekapcsolása">🔊</button>
 
-  <!-- FELSŐ FEJLÉC ZÓNA: BALRA SÁRGA HIGH SCORE, KÖZÉPEN FEHÉR PONTSZÁM -->
+  <!-- FELSŐ FEJLÉC ZÓNA -->
   <div class="header-zone">
     <span id="high-score">0</span>
     <div class="score-board">
@@ -29,7 +29,7 @@
     </div>
   </div>
 
-  <!-- FŐ JÁTÉKMEZŐ A HELLO KITTY-VEL -->
+  <!-- FŐ JÁTÉKMEZŐ -->
   <div class="board-wrapper">
     <img id="kitty-mascot" src="hellokitty.png" alt="Hello Kitty Mascot" />
     <canvas id="gameCanvas"></canvas>
@@ -45,22 +45,22 @@
   <!-- Fullscreen lebegő canvas a húzáshoz -->
   <canvas id="dragCanvas"></canvas>
 
-  <!-- START GAME OVERLAY -->
+  <!-- TELJES KÉPERNYŐS START GAME OVERLAY -->
   <div id="start-game-modal" class="modal">
     <div class="modal-content">
-      <p>Welcome to</p>
+      <p class="welcome-text">Welcome to</p>
       <h2>Block Blast</h2>
       <button id="start-btn">Start Game</button>
     </div>
   </div>
 
-  <!-- GAME OVER OVERLAY (CSAK EZ AZ EGY LEGYEN A FÁJLBAN!) -->
+  <!-- TELJES KÉPERNYŐS GAME OVER OVERLAY -->
   <div id="game-over-modal" class="modal hidden">
     <div class="modal-content">
-      <h2>Game Over</h2>
-      <p>Score: <span id="final-score">0</span></p>
-      <i><p id="gameover-text"></p></i>
-      <button id="restart-btn">New Game</button>
+      <h2 id="game-over-title">Game Over</h2>
+      <div id="final-score">0</div>
+      <p id="gameover-text"></p>
+      <button id="restart-btn" class="btn-hidden">New Game</button>
     </div>
   </div>
 

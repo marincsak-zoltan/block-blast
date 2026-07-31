@@ -19,7 +19,7 @@ body {
   touch-action: none;
 }
 
-/* NÉMÍTÓ GOMB (JOBB FELSŐ SAROK - KISEBB MÉRET) */
+/* NÉMÍTÓ GOMB */
 .icon-btn {
   position: absolute;
   top: 12px;
@@ -27,9 +27,9 @@ body {
   background: rgba(255, 255, 255, 0.25);
   border: none;
   border-radius: 50%;
-  width: 34px;          /* 44px-ről csökkentve 34px-re */
+  width: 34px;
   height: 34px;
-  font-size: 15px;      /* Az ikon mérete is finomabb lett */
+  font-size: 15px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -47,11 +47,11 @@ body {
   opacity: 0.6;
 }
 
-/* FELSŐ FEJLÉC ZÓNA ELRENDEZÉS */
+/* FELSŐ FEJLÉC ZÓNA */
 .header-zone {
   position: relative;
   width: 100%;
-  max-width: 400px; /* A játékmező szélességéhez igazítva */
+  max-width: 400px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -59,27 +59,23 @@ body {
   min-height: 60px;
 }
 
-/* SÁRGÁN RAGYOGÓ TALPAS HIGH SCORE (KISEBB ÉS FELJEBB TOLVA) */
 #high-score {
   position: absolute;
   left: 5px;
-  top: 0px;                              /* Feljebb tolva a tetejéhez */
-  font-size: 20px;                       /* Kisebb, finomabb betűméret */
+  top: 0px;
+  font-size: 20px;
   font-weight: 700;
-  color: #ffd700;                        /* Arany / Sárga szín */
+  color: #ffd700;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
-/* 👑 KORONA EMOJI A HIGH SCORE ELŐTT */
 #high-score::before {
   content: '👑 ';
   font-size: 16px;
   margin-right: 2px;
-  /* Visszaállítjuk a normál betűtípust az emojinak, hogy minden eszközön szépen jelenjen meg */
   font-family: system-ui, -apple-system, sans-serif; 
 }
 
-/* PONTSZÁM KÖZÉPEN */
 .score-board #score {
   font-size: 48px;
   font-weight: 900;
@@ -95,7 +91,6 @@ body {
   align-items: center;
 }
 
-/* Hello Kitty pozicionálása */
 #kitty-mascot {
   position: absolute;
   top: -55px;
@@ -118,14 +113,6 @@ body {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-#gameover-text {
-  font-size: 1.1rem;
-  font-style: italic;
-  margin: 5px 0 10px 0;
-  text-align: center;
-}
-
-/* Alsó kártyák */
 .pieces-container {
   display: flex;
   justify-content: space-around;
@@ -142,7 +129,6 @@ body {
   height: 100%;
 }
 
-/* FULLSCREEN LEBEGŐ CANVAS */
 #dragCanvas {
   position: fixed;
   top: 0;
@@ -153,85 +139,122 @@ body {
   z-index: 9999;
 }
 
-/* GAME OVER OVERLAY & MODAL STÍLUSOK */
+/* ========================================================= */
+/* TELJES KÉPERNYŐS FELÜLETEK (START ÉS GAME OVER SCREEN) */
+/* ========================================================= */
+
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
+  background-color: #774046; /* Egységes teljes képernyős háttér */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10000;
   opacity: 1;
-  transition: opacity 0.3s ease;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .modal.hidden {
-  display: none;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 
+/* TARTALOM FÜGGŐLEGES KÖZÉPRE IGAZÍTÁSA ESZTÉTIKUS TÁVOLSÁGOKKAL */
 .modal-content {
-  background-color: #774046;
-  border: 3px solid #89656a;
-  border-radius: 20px;
-  padding: 35px 45px;
-  text-align: center;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-  color: #fff5f7;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 20px;
+  width: 100%;
+  max-width: 450px;
+  height: 85vh;
   display: flex;
   flex-direction: column;
+  justify-content: space-around;
   align-items: center;
-  gap: 16px;
-  min-width: 260px;
+  text-align: center;
+  color: #fff5f7;
 }
 
+/* FŐCÍMEK */
 .modal-content h2 {
-  font-size: 2.4rem;
-  font-weight: 800;
+  font-size: 3.2rem;
+  font-weight: 900;
   margin: 0;
   letter-spacing: 1px;
-  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: color 0.3s ease;
 }
 
-.modal-content p {
-  font-size: 1.4rem;
+.welcome-text {
+  font-size: 1.8rem;
   font-weight: 600;
+  opacity: 0.9;
   margin: 0;
-  opacity: 0.95;
 }
 
+/* HATALMAS PÖRGŐ PONTSZÁM KIÍRÁS */
+#final-score {
+  font-size: 5.5rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  transition: color 0.3s ease;
+}
+
+/* GAME OVER BESZÓLÓ SZÖVEG */
+#gameover-text {
+  font-size: 1.4rem;
+  font-style: italic;
+  color: #fff5f7;
+  margin: 0;
+  padding: 0 10px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* REKORD ESETÉN SÁRGA SZÍNEK */
+.modal-content.is-highscore h2,
+.modal-content.is-highscore #final-score {
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+/* GOMBOK STÍLUSA ÉS ELREJTÉSE */
 #start-btn, 
 #restart-btn {
-  margin-top: 10px;
-  padding: 14px 32px;
-  font-size: 1.25rem;
+  padding: 16px 44px;
+  font-size: 1.35rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   color: #774046;
   background-color: #fff5f7;
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
-  box-shadow: 0 6px 0 #d9c5c9, 0 10px 15px rgba(0, 0, 0, 0.25);
-  transition: all 0.1s ease;
-  position: relative;
-  top: 0;
-}
-
-#start-btn:hover, 
-#restart-btn:hover {
-  background-color: #ffffff;
+  box-shadow: 0 6px 0 #d9c5c9, 0 10px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease, opacity 0.3s ease;
 }
 
 #start-btn:active, 
 #restart-btn:active {
-  top: 4px;
+  transform: translateY(4px);
   box-shadow: 0 2px 0 #d9c5c9, 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* GOMB REJTÉSE A PÖRGÉS IDEJÉRE */
+.btn-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0.8);
 }

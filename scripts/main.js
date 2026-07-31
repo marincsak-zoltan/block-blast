@@ -10,6 +10,7 @@ const dragCtx = dragCanvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 const gameOverModal = document.getElementById('game-over-modal');
 const finalScoreElement = document.getElementById('final-score');
+const gameOverTitleElement = document.getElementById('game-over-title');
 const restartBtn = document.getElementById('restart-btn');
 const startGameModal = document.getElementById('start-game-modal');
 const startBtn = document.getElementById('start-btn');
@@ -27,7 +28,11 @@ const GAME_OVER_MESSAGES = [
   "Róza te amatőr",
   "Előtte se volt annyira szuper",
   "Már el is ment?",
-  "Mindig ott vagy ahol mi nem"
+  "Mindig ott vagy ahol mi nem",
+  "Ó ba*dmeg Sára",
+  "Ez izgis volt",
+  "Ezek alakzatok, Zoli",
+  "NENA"
 ];
 
 // Képek betöltése
@@ -227,7 +232,7 @@ async function animateLineClears(fullRows, fullCols) {
   gameState.isAnimating = false;
 }
 
-// --- JAVÍTOTT PÖRGŐ PONTSZÁM ANIMÁCIÓ ---
+// FEJLÉC PONTSZÁM PÖRGÉSE
 let displayedScore = 0;
 let scoreAnimationId = null;
 
@@ -237,13 +242,9 @@ function animateScore() {
   if (displayedScore < targetScore) {
     const diff = targetScore - displayedScore;
     const step = Math.max(1, Math.ceil(diff * 0.15));
-    
     displayedScore += step;
 
-    if (displayedScore > targetScore) {
-      displayedScore = targetScore;
-    }
-
+    if (displayedScore > targetScore) displayedScore = targetScore;
     if (scoreElement) scoreElement.textContent = displayedScore;
 
     if (displayedScore < targetScore) {
@@ -256,9 +257,7 @@ function animateScore() {
 }
 
 function updateScoreUI() {
-  if (scoreAnimationId) {
-    cancelAnimationFrame(scoreAnimationId);
-  }
+  if (scoreAnimationId) cancelAnimationFrame(scoreAnimationId);
   scoreAnimationId = requestAnimationFrame(animateScore);
 }
 
@@ -266,6 +265,37 @@ function updateHighScoreUI() {
   if (highScoreElement) {
     highScoreElement.textContent = gameState.highScore;
   }
+}
+
+// LASSABB, DÁRMÁIABB PONTSZÁM PÖRGÉS
+function animateFinalScore(targetScore, onComplete) {
+  let current = 0;
+  finalScoreElement.textContent = 0;
+
+  if (targetScore === 0) {
+    if (onComplete) onComplete();
+    return;
+  }
+
+  function stepAnimation() {
+    const diff = targetScore - current;
+    
+    // A 0.025-ös szorzó lassabb pörgést ad, a Math.min pedig megelőzi, 
+    // hogy a nagyon magas pontszámoknál túl nagyokat ugorjon a számláló
+    const step = Math.max(1, Math.min(Math.ceil(diff * 0.04), 15)); 
+    current += step;
+
+    if (current >= targetScore) {
+      current = targetScore;
+      finalScoreElement.textContent = current;
+      if (onComplete) onComplete();
+    } else {
+      finalScoreElement.textContent = current;
+      requestAnimationFrame(stepAnimation);
+    }
+  }
+
+  requestAnimationFrame(stepAnimation);
 }
 
 // Eseménykezelők
@@ -342,10 +372,11 @@ async function handleEnd() {
         }
       }
 
-      // Pontszám pörgetve frissítése
       updateScoreUI();
 
-      if (updateHighScore()) {
+      // Rekord elmentése
+      const isNewRecord = updateHighScore();
+      if (isNewRecord) {
         updateHighScoreUI();
       }
 
@@ -353,16 +384,34 @@ async function handleEnd() {
 
       if (checkGameOver()) {
         gameState.isGameOver = true;
-        finalScoreElement.textContent = gameState.score;
 
-        // 🎲 RANDOM GAME OVER ÜZENET
+        const modalContent = gameOverModal.querySelector('.modal-content');
+        
+        // Cím és arany szín beállítása rekord esetén
+        if (isNewRecord) {
+          gameOverTitleElement.textContent = "NEW HIGHSCORE!";
+          modalContent.classList.add('is-highscore');
+        } else {
+          gameOverTitleElement.textContent = "Game Over";
+          modalContent.classList.remove('is-highscore');
+        }
+
+        // Random beszólás
         if (gameOverTextElement) {
           const randomIndex = Math.floor(Math.random() * GAME_OVER_MESSAGES.length);
           gameOverTextElement.textContent = `"${GAME_OVER_MESSAGES[randomIndex]}"`;
         }
 
+        // Gomb elrejtése a pörgés idejére
+        restartBtn.classList.add('btn-hidden');
         gameOverModal.classList.remove('hidden');
+
         playGameOverSound();
+
+        // Pontszám pörgetése 0-ról, gomb megjelenítése a végén
+        animateFinalScore(gameState.score, () => {
+          restartBtn.classList.remove('btn-hidden');
+        });
       }
     } else {
       dragInfo.isDragging = false;
@@ -372,7 +421,7 @@ async function handleEnd() {
   drawAll();
 }
 
-// Listener-ek csatolása
+// Listener-ek
 pieceCanvases.forEach((pCanvas, index) => {
   pCanvas.addEventListener('mousedown', (e) => handleStart(e.clientX, e.clientY, index));
   pCanvas.addEventListener('touchstart', (e) => {
@@ -411,7 +460,6 @@ spawnNewPieces();
 resizeCanvas();
 updateHighScoreUI();
 
-// Service Worker regisztrálása a PWA-hoz
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch((err) => {
     console.log('SW registration failed:', err);
