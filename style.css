@@ -49,38 +49,51 @@ body {
 
 /* FELSŐ FEJLÉC ZÓNA */
 .header-zone {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  margin-top: 10px;
-  min-height: 60px;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 10px auto;
+  position: relative;
+  padding: 10px 15px;
+  box-sizing: border-box;
 }
 
-#high-score {
+.high-score-container {
   position: absolute;
-  left: 5px;
-  top: 0px;
-  font-size: 20px;
+  top: 8px;
+  left: 15px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #ffd700;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 2;
 }
 
-#high-score::before {
-  content: '👑 ';
-  font-size: 16px;
-  margin-right: 2px;
-  font-family: system-ui, -apple-system, sans-serif; 
+#high-score {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffd700;
 }
 
-.score-board #score {
-  font-size: 48px;
+.score-container {
+  margin-top: 24px;
+  text-align: center;
+  z-index: 1;
+}
+
+#score {
+  font-size: 3.2rem;
   font-weight: 900;
   color: #ffffff;
-  text-shadow: 0 3px 6px rgba(119, 64, 70, 0.4);
+  letter-spacing: 1px;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  line-height: 1;
 }
 
 /* PÁLYA KERETTEL */
@@ -226,7 +239,7 @@ body {
 .modal-content.is-highscore h2,
 .modal-content.is-highscore #final-score {
   color: #ffd700;
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+  text-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
 /* GOMBOK STÍLUSA ÉS ELREJTÉSE */

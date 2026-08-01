@@ -68,3 +68,35 @@ export const SMART_COMBOS = [
     [[1, 1], [1, 1]]
   ]
 ];
+
+// ÖSSZES ALAKZAT KIGYŰJTÉSE EGY CSOPORTBA
+export function getAllAvailablePieces() {
+  const all = [];
+  
+  PIECE_CATEGORIES.BASIC.forEach(item => all.push(item.piece));
+  PIECE_CATEGORIES.LINES.HORIZ.forEach(item => all.push(item.piece));
+  PIECE_CATEGORIES.LINES.VERT.forEach(item => all.push(item.piece));
+  PIECE_CATEGORIES.RARE.forEach(item => all.push(item.piece));
+
+  return all;
+}
+
+// Súlyozott véletlenszerű elem húzása (Alapértelmezett sorsolás)
+export function getRandomWeightedPiece() {
+  const pool = [];
+  
+  const addCategory = (list) => {
+    list.forEach(item => {
+      for (let i = 0; i < item.weight; i++) {
+        pool.push(item.piece);
+      }
+    });
+  };
+
+  addCategory(PIECE_CATEGORIES.BASIC);
+  addCategory(PIECE_CATEGORIES.LINES.HORIZ);
+  addCategory(PIECE_CATEGORIES.LINES.VERT);
+  addCategory(PIECE_CATEGORIES.RARE);
+
+  return pool[Math.floor(Math.random() * pool.length)];
+}

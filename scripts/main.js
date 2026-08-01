@@ -1,5 +1,5 @@
-import { GRID_SIZE, grid, gameState, dragInfo, currentPieces, spawnNewPieces, checkSpawnNextRound, resetState, updateHighScore } from './state.js';
-import { canPlacePiece, placePiece, clearFullLines, getSimulatedLineClears, countPieceBlocks, getBasicClearScore, checkGameOver } from './logic.js';
+import { GRID_SIZE, grid, gameState, dragInfo, currentPieces, spawnNewPieces, checkSpawnNextRound, resetState, updateHighScore, saveGameState, loadSavedGame, clearSavedGame } from './state.js';
+import { canPlacePiece, placePiece, clearFullLines, getSimulatedLineClears, countPieceBlocks, getBasicClearScore, checkGameOver, getBoardCellFromCoords, getRandomGameOverMessage } from './logic.js';
 import { unlockAudio, playWooshSound, playPlaceSound, playComboSound, playGameOverSound, toggleMute } from './audio.js';
 
 // DOM elemek
@@ -23,18 +23,6 @@ const pieceCtxs = pieceCanvases.map(c => c.getContext('2d'));
 
 const gameOverTextElement = document.getElementById('gameover-text');
 
-// Véletlenszerű Game Over üzenetek
-const GAME_OVER_MESSAGES = [
-  "Róza te amatőr",
-  "Előtte se volt annyira szuper",
-  "Már el is ment?",
-  "Mindig ott vagy ahol mi nem",
-  "Ó ba*dmeg Sára",
-  "Ez izgis volt",
-  "Ezek alakzatok, Zoli",
-  "NENA"
-];
-
 // Képek betöltése
 const blockImage = new Image(); blockImage.src = 'the_object.png';
 const gradHorizImage = new Image(); gradHorizImage.src = 'gradient_horizontal.png';
@@ -43,23 +31,6 @@ const gradVertImage = new Image(); gradVertImage.src = 'gradient_vertical.png';
 let loaded = 0;
 const onLoad = () => { if (++loaded === 3) drawAll(); };
 blockImage.onload = onLoad; gradHorizImage.onload = onLoad; gradVertImage.onload = onLoad;
-
-function getBoardCellFromCoords(clientX, clientY, piece) {
-  const rect = canvas.getBoundingClientRect();
-  const scale = canvas.width / rect.width;
-  const yOffset = gameState.cellSize * 1.5;
-
-  const canvasX = (clientX - rect.left) * scale;
-  const canvasY = ((clientY - yOffset) - rect.top) * scale;
-
-  const pRows = piece.length;
-  const pCols = piece[0].length;
-
-  const col = Math.floor((canvasX - (pCols * gameState.cellSize) / 2) / gameState.cellSize + 0.5);
-  const row = Math.floor((canvasY - (pRows * gameState.cellSize) / 2) / gameState.cellSize + 0.5);
-
-  return { row, col };
-}
 
 function resizeCanvas() {
   const maxSize = Math.min(window.innerWidth - 20, window.innerHeight - 260, 420);
@@ -100,7 +71,7 @@ function drawGrid() {
   if (dragInfo.isDragging && dragInfo.index !== null) {
     const piece = currentPieces[dragInfo.index];
     if (piece) {
-      const { row, col } = getBoardCellFromCoords(dragInfo.x, dragInfo.y, piece);
+      const { row, col } = getBoardCellFromCoords(dragInfo.x, dragInfo.y, piece, canvas);
       const valid = canPlacePiece(piece, row, col);
 
       if (valid) {
@@ -276,16 +247,14 @@ function animateFinalScore(targetScore, onComplete) {
     return;
   }
 
-  const DURATION = 4000; // 4 másodperces pörgés
+  const DURATION = 4000;
   const startTime = performance.now();
 
   function stepAnimation(currentTime) {
     const elapsedTime = currentTime - startTime;
     const progress = Math.min(elapsedTime / DURATION, 1);
 
-    // Ease-out lefékezés a végén
     const easeOutProgress = 1 - Math.pow(1 - progress, 3);
-
     const currentScore = Math.floor(easeOutProgress * targetScore);
     finalScoreElement.textContent = currentScore;
 
@@ -339,7 +308,7 @@ async function handleEnd() {
 
   const piece = currentPieces[dragInfo.index];
   if (piece) {
-    const { row, col } = getBoardCellFromCoords(dragInfo.x, dragInfo.y, piece);
+    const { row, col } = getBoardCellFromCoords(dragInfo.x, dragInfo.y, piece, canvas);
 
     if (canPlacePiece(piece, row, col)) {
       placePiece(piece, row, col);
@@ -376,7 +345,6 @@ async function handleEnd() {
 
       updateScoreUI();
 
-      // Rekord elmentése
       const isNewRecord = updateHighScore();
       if (isNewRecord) {
         updateHighScoreUI();
@@ -384,12 +352,15 @@ async function handleEnd() {
 
       checkSpawnNextRound();
 
+      saveGameState();
+
       if (checkGameOver()) {
         gameState.isGameOver = true;
 
+        clearSavedGame();
+
         const modalContent = gameOverModal.querySelector('.modal-content');
         
-        // Cím és arany szín beállítása rekord esetén
         if (isNewRecord) {
           gameOverTitleElement.textContent = "NEW HIGHSCORE!";
           modalContent.classList.add('is-highscore');
@@ -398,21 +369,16 @@ async function handleEnd() {
           modalContent.classList.remove('is-highscore');
         }
 
-        // Random beszólás
         if (gameOverTextElement) {
-          const randomIndex = Math.floor(Math.random() * GAME_OVER_MESSAGES.length);
-          gameOverTextElement.textContent = `"${GAME_OVER_MESSAGES[randomIndex]}"`;
+          gameOverTextElement.textContent = `"${getRandomGameOverMessage()}"`;
         }
 
-        // 4. A gomb elrejtése a pörgés és a szünet idejére
         restartBtn.classList.add('btn-hidden');
         gameOverModal.classList.remove('hidden');
 
         playGameOverSound();
 
-        // 5. Pontszám pörgetése 4 mp-ig...
         animateFinalScore(gameState.score, () => {
-          // ...majd 0.5 mp (500 ms) drámai szünet után beugrik a gomb!
           setTimeout(() => {
             restartBtn.classList.remove('btn-hidden');
           }, 500);
@@ -448,10 +414,11 @@ window.addEventListener('touchend', handleEnd);
 startBtn.addEventListener('click', () => {
   gameState.isStarted = true;
   startGameModal.classList.add('hidden');
+  drawAll();
 });
 
 restartBtn.addEventListener('click', () => {
-  restartBtn.classList.add('btn-hidden'); // Azonnal elrejtjük a következő körre
+  restartBtn.classList.add('btn-hidden');
   resetState();
   displayedScore = 0;
   if (scoreElement) scoreElement.textContent = 0;
@@ -462,7 +429,18 @@ restartBtn.addEventListener('click', () => {
 
 window.addEventListener('resize', resizeCanvas);
 
-spawnNewPieces();
+// --- INICIALIZÁLÓ LOGIKA (Mentett játék ellenőrzése) ---
+const hasSavedGame = loadSavedGame();
+
+if (hasSavedGame) {
+  if (startBtn) startBtn.textContent = "Continue Game";
+  displayedScore = gameState.score;
+  if (scoreElement) scoreElement.textContent = gameState.score;
+} else {
+  if (startBtn) startBtn.textContent = "Continue Game";
+  spawnNewPieces();
+}
+
 resizeCanvas();
 updateHighScoreUI();
 

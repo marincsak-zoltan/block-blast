@@ -1,4 +1,40 @@
-import { GRID_SIZE, grid, currentPieces } from './state.js';
+import { GRID_SIZE, grid, currentPieces, gameState } from './state.js';
+import { getAllAvailablePieces, getRandomWeightedPiece } from './pieces.js';
+
+// Véletlenszerű Game Over üzenetek
+export const GAME_OVER_MESSAGES = [
+  "Róza te amatőr",
+  "Előtte se volt annyira szuper",
+  "Már el is ment?",
+  "Mindig ott vagy ahol mi nem",
+  "Ó ba*dmeg Sára",
+  "Ez izgis volt",
+  "Ezek alakzatok, Zoli",
+  "Nena"
+];
+
+export function getRandomGameOverMessage() {
+  const randomIndex = Math.floor(Math.random() * GAME_OVER_MESSAGES.length);
+  return GAME_OVER_MESSAGES[randomIndex];
+}
+
+// Pixel koordináták átszámítása rácsindexre (Sor, Oszlop)
+export function getBoardCellFromCoords(clientX, clientY, piece, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const scale = canvas.width / rect.width;
+  const yOffset = gameState.cellSize * 1.5;
+
+  const canvasX = (clientX - rect.left) * scale;
+  const canvasY = ((clientY - yOffset) - rect.top) * scale;
+
+  const pRows = piece.length;
+  const pCols = piece[0].length;
+
+  const col = Math.floor((canvasX - (pCols * gameState.cellSize) / 2) / gameState.cellSize + 0.5);
+  const row = Math.floor((canvasY - (pRows * gameState.cellSize) / 2) / gameState.cellSize + 0.5);
+
+  return { row, col };
+}
 
 export function canPlacePiece(piece, startRow, startCol) {
   const pRows = piece.length;
@@ -102,4 +138,88 @@ export function checkGameOver() {
     }
   }
   return true;
+}
+
+/**
+ * ELEMZŐ ALGORTIMUS:
+ * Megkeresi azokat az alakzatokat, amik beilleszthetők a jelenlegi pályára.
+ */
+function analyzeBoardForSmartPieces() {
+  const allPieces = getAllAvailablePieces();
+  const candidates = [];
+
+  for (const piece of allPieces) {
+    let blockCount = 0;
+    for (let r = 0; r < piece.length; r++) {
+      for (let c = 0; c < piece[0].length; c++) {
+        if (piece[r][c] === 1) blockCount++;
+      }
+    }
+
+    let canPlace = false;
+    let clearsLine = false;
+
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        if (canPlacePiece(piece, r, c)) {
+          canPlace = true;
+          const sim = getSimulatedLineClears(piece, r, c);
+          if (sim.fullRows.length > 0 || sim.fullCols.length > 0) {
+            clearsLine = true;
+            break;
+          }
+        }
+      }
+      if (clearsLine) break;
+    }
+
+    if (canPlace) {
+      candidates.push({ piece, size: blockCount, clearsLine });
+    }
+  }
+
+  return candidates;
+}
+
+/**
+ * OKOS GENERÁTOR:
+ * Legyárt 3 elemet a kombó és a pálya állapota alapján.
+ */
+export function generateSmartNextPieces(comboCount) {
+  const nextThree = [];
+  
+  // 0 kombónál marad a normál sorsolás
+  if (comboCount === 0) {
+    for (let i = 0; i < 3; i++) {
+      nextThree.push(getRandomWeightedPiece());
+    }
+    return nextThree;
+  }
+
+  const candidates = analyzeBoardForSmartPieces();
+
+  // Kiszűrjük a >2 méretű elemeket (NE adjon 1x1 vagy 2-es mini blokkokat!)
+  const complexClearing = candidates.filter(c => c.size > 2 && c.clearsLine);
+  const complexFitting = candidates.filter(c => c.size > 2);
+
+  const smartChance = comboCount >= 2 ? 0.8 : 0.5;
+
+  for (let i = 0; i < 3; i++) {
+    // Ha van olyan összetett elem, ami SORT ÜRÍT ÉS bejön a szerencse:
+    if (complexClearing.length > 0 && Math.random() < smartChance) {
+      const picked = complexClearing[Math.floor(Math.random() * complexClearing.length)];
+      nextThree.push(picked.piece);
+    } 
+    // Ha nincs sorürítő, de van olyan összetett elem, ami legalább BEFÉR:
+    else if (complexFitting.length > 0 && Math.random() < 0.6) {
+      const picked = complexFitting[Math.floor(Math.random() * complexFitting.length)];
+      nextThree.push(picked.piece);
+    } 
+    // Egyébként marad a sima sorsolás
+    else {
+      nextThree.push(getRandomWeightedPiece());
+    }
+  }
+
+  return nextThree;
 }
