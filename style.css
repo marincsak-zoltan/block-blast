@@ -195,6 +195,17 @@ body {
   color: #fff5f7;
 }
 
+/* VERZIÓJELZŐ A KEZDŐKÉPERNYŐN */
+.version-tag {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #c4aeb2;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+  /* opacity: 0.8; */
+}
+
 /* FŐCÍMEK */
 .modal-content h2 {
   font-size: 3.2rem;

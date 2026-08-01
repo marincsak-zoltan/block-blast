@@ -18,7 +18,7 @@ if "%msg%"=="" (
 
 echo.
 :: 2. Version number input
-set /p ver="2. Enter version number including the letter v (eg. v2.4): "
+set /p ver="2. Enter version number (e.g. v3 or 1.2 or v2.5): "
 
 if "%ver%"=="" (
     echo [ERROR] Version number cannot be empty!
@@ -32,14 +32,15 @@ set FULL_COMMIT_MSG=%msg% %ver% - stable
 echo.
 echo ============================================
 echo Commit message: "%FULL_COMMIT_MSG%"
-echo Updating sw.js to version: block-blast-%ver%
+echo Updating sw.js and index.html to version: %ver%
 echo ============================================
 echo.
 
-:: 3. Update sw.js CACHE_NAME using PowerShell
+:: 3. Update sw.js CACHE_NAME and index.html version-tag using PowerShell
 powershell -Command "(Get-Content sw.js) -replace 'const CACHE_NAME = .*;', 'const CACHE_NAME = ''block-blast-%ver%'';' | Set-Content sw.js"
+powershell -Command "(Get-Content index.html) -replace '<span class=\"version-tag\">.*</span>', '<span class=\"version-tag\">%ver%</span>' | Set-Content index.html"
 
-echo [OK] sw.js updated successfully!
+echo [OK] sw.js & index.html updated successfully!
 echo.
 
 :: 4. Git workflow execution
