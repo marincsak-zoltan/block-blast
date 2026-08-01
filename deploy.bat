@@ -18,7 +18,7 @@ if "%msg%"=="" (
 
 echo.
 :: 2. Version number input
-set /p ver="2. Enter version number (e.g. v3 or 1.2): "
+set /p ver="2. Enter version number including the letter v (eg. v2.4): "
 
 if "%ver%"=="" (
     echo [ERROR] Version number cannot be empty!
@@ -52,18 +52,21 @@ git push
 
 echo.
 echo --------------------------------------------
-echo 2. Switch to MAIN, MERGE and PUSH ORIGIN MAIN
+echo 2. Switch to MAIN, PULL, MERGE and PUSH
 echo --------------------------------------------
 (
   git checkout main
+  git pull origin main
   git merge dev
   git push origin main
   git checkout dev
+  git merge main
+  git push origin dev
 )
 
 echo.
 echo ============================================
-echo SUCCESSFUL DEPLOY! (dev - main - dev)
+echo SUCCESSFUL DEPLOY! (dev - main - dev synced)
 echo ============================================
 echo.
 pause
