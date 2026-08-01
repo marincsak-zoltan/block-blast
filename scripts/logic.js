@@ -223,3 +223,13 @@ export function generateSmartNextPieces(comboCount) {
 
   return nextThree;
 }
+
+// Ellenőrzi, hogy a pálya teljesen üres-e (Clear Board)
+export function isBoardEmpty() {
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (grid[r][c] !== 0) return false;
+    }
+  }
+  return true;
+}

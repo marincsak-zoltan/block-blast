@@ -4,10 +4,19 @@ export const PIECE_CATEGORIES = {
   BASIC: [
     { piece: [[1, 1], [1, 1]], weight: 25 },               // 2x2
     { piece: [[1, 1, 1], [1, 1, 1], [1, 1, 1]], weight: 15 },// 3x3
-    { piece: [[1, 0], [1, 0], [1, 1]], weight: 20 },       // L
+    
+    // NAGY L-ALAKOK (4 blokk)
+    { piece: [[1, 0], [1, 0], [1, 1]], weight: 20 },       
     { piece: [[0, 1], [0, 1], [1, 1]], weight: 20 },
     { piece: [[1, 1, 1], [1, 0, 0]], weight: 20 },
     { piece: [[1, 1, 1], [0, 0, 1]], weight: 20 },
+
+    // KIS L-ALAKOK / SAROK-ELEMEK (3 blokk - EZ HIÁNYZOTT!)
+    { piece: [[1, 0], [1, 1]], weight: 5 },
+    { piece: [[0, 1], [1, 1]], weight: 5 },
+    { piece: [[1, 1], [1, 0]], weight: 5 },
+    { piece: [[1, 1], [0, 1]], weight: 5 },
+
     { piece: [[1, 1, 1], [0, 1, 0]], weight: 20 },       // T
     { piece: [[1, 1, 0], [0, 1, 1]], weight: 15 },       // Z / S
     { piece: [[0, 1, 1], [1, 1, 0]], weight: 15 }
@@ -27,7 +36,7 @@ export const PIECE_CATEGORIES = {
     ]
   },
 
-  // RITKA ELEMEK (Drasztikusan lecsökkentett súlyok!)
+  // RITKA ELEMEK (Átlók súlya minimálisra csökkentve!)
   RARE: [
     { piece: [[1]], weight: 1 },                           // 1-es négyzet
     { piece: [[1, 1]], weight: 2 },                        // 2-es egyenes H
@@ -35,9 +44,8 @@ export const PIECE_CATEGORIES = {
     { piece: [[1, 0], [0, 1]], weight: 1 },                // 2-es átló
     { piece: [[0, 1], [1, 0]], weight: 1 },
     { piece: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], weight: 1 }, // 3-as átló
-    { piece: [[0, 0, 1], [0, 1, 0], [1, 0, 0]], weight: 1 },
-    { piece: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], weight: 1 }, // 4-es átló
-    { piece: [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]], weight: 1 }
+    { piece: [[0, 0, 1], [0, 1, 0], [1, 0, 0]], weight: 1 }
+    // A 4-es átlók teljesen törölve lettek a játékmenet javítása érdekében!
   ]
 };
 

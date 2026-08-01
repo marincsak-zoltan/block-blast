@@ -1,5 +1,5 @@
 import { GRID_SIZE, grid, gameState, dragInfo, currentPieces, spawnNewPieces, checkSpawnNextRound, resetState, updateHighScore, saveGameState, loadSavedGame, clearSavedGame } from './state.js';
-import { canPlacePiece, placePiece, clearFullLines, getSimulatedLineClears, countPieceBlocks, getBasicClearScore, checkGameOver, getBoardCellFromCoords, getRandomGameOverMessage } from './logic.js';
+import { canPlacePiece, placePiece, clearFullLines, getSimulatedLineClears, countPieceBlocks, getBasicClearScore, checkGameOver, getBoardCellFromCoords, getRandomGameOverMessage, isBoardEmpty } from './logic.js';
 import { unlockAudio, playWooshSound, playPlaceSound, playComboSound, playGameOverSound, toggleMute } from './audio.js';
 
 // DOM elemek
@@ -331,6 +331,13 @@ async function handleEnd() {
 
         const B = getBasicClearScore(lineClearResult.clearedLinesCount);
         gameState.score += B * gameState.comboCount + B;
+
+        // 🌟 TELJES PÁLYA KIÜRÍTÉSI BÓNUSZ (CLEAR BOARD BONUS)!
+        if (isBoardEmpty()) {
+          const clearBoardBonus = 500 * (gameState.comboCount + 1);
+          gameState.score += clearBoardBonus;
+          console.log(`CLEAR BOARD! Bónusz: +${clearBoardBonus} pont!`);
+        }
 
         gameState.comboCount++;
         gameState.comboMovesLeft = 3;
