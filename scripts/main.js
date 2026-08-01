@@ -332,7 +332,6 @@ async function handleEnd() {
         const B = getBasicClearScore(lineClearResult.clearedLinesCount);
         gameState.score += B * gameState.comboCount + B;
 
-        // 🌟 TELJES PÁLYA KIÜRÍTÉSI BÓNUSZ (CLEAR BOARD BONUS)!
         if (isBoardEmpty()) {
           const clearBoardBonus = 500 * (gameState.comboCount + 1);
           gameState.score += clearBoardBonus;
@@ -439,13 +438,16 @@ window.addEventListener('resize', resizeCanvas);
 // --- INICIALIZÁLÓ LOGIKA (Mentett játék ellenőrzése) ---
 const hasSavedGame = loadSavedGame();
 
-if (hasSavedGame) {
+if (hasSavedGame && gameState.score > 0) {
   if (startBtn) startBtn.textContent = "Continue Game";
   displayedScore = gameState.score;
   if (scoreElement) scoreElement.textContent = gameState.score;
 } else {
-  if (startBtn) startBtn.textContent = "Continue Game";
-  spawnNewPieces();
+  if (startBtn) startBtn.textContent = "Start Game";
+  
+  if (!currentPieces.some(p => p !== null)) {
+    spawnNewPieces();
+  }
 }
 
 resizeCanvas();

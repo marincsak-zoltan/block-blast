@@ -18,7 +18,7 @@ if "%msg%"=="" (
 
 echo.
 :: 2. Version number input
-set /p ver="2. Enter version number (e.g. v3 or 1.2 or v2.5): "
+set /p ver="2. Enter version number including the letter 'v' (eg. v2.5): "
 
 if "%ver%"=="" (
     echo [ERROR] Version number cannot be empty!
