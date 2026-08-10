@@ -516,3 +516,18 @@ if (closeScoreboardBtn) {
 
 // Check player name on startup
 checkPlayerName();
+
+// --- AUTOMATIKUS FRISSÍTÉS REFRESH LOGIKA ---
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').then((reg) => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          // Ha új verziót éslel a böngésző, automatikusan újraindítja az oldalt az új kóddal!
+          window.location.reload();
+        }
+      });
+    });
+  });
+}
