@@ -285,5 +285,82 @@ body {
   opacity: 0 !important;
   transform: scale(0) !important;
   pointer-events: none !important;
-  transition: none !important; /* <--- Ez a kulcs! Megakadályozza az eltűnési animációt */
+  transition: none !important;
+}
+
+/* ========================================================= */
+/* NÉVBEKÉRŐ ÉS RANGLISTA (SUPABASE UI) STÍLUSOK */
+/* ========================================================= */
+
+/* Névbeviteli mező */
+#player-name-input {
+  width: 85%;
+  max-width: 300px;
+  padding: 14px 18px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #774046;
+  background-color: #fff5f7;
+  border: 3px solid #89656a;
+  border-radius: 14px;
+  text-align: center;
+  outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+#player-name-input::placeholder {
+  color: #bfa8ac;
+  font-weight: 500;
+}
+
+/* Másodlagos gomb (Scoreboard & Back gombok) */
+.secondary-btn {
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff5f7;
+  background: transparent;
+  border: 2px solid #fff5f7;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.secondary-btn:active {
+  transform: scale(0.95);
+  background: rgba(255, 245, 247, 0.15);
+}
+
+/* Ranglista keret és görgethető lista */
+#leaderboard-list {
+  width: 100%;
+  max-width: 360px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin: 15px 0;
+  padding-right: 5px;
+}
+
+/* Egyéni elemek a ranglistában */
+.leaderboard-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff5f7;
+}
+
+/* Top 3 dobogós kiemelés (Arany/Ezüst/Bronz) */
+.leaderboard-item.top-3 {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  font-weight: 800;
 }

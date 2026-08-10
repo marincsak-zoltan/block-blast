@@ -1,6 +1,7 @@
 import { GRID_SIZE, grid, gameState, dragInfo, currentPieces, spawnNewPieces, checkSpawnNextRound, resetState, updateHighScore, saveGameState, loadSavedGame, clearSavedGame } from './state.js';
 import { canPlacePiece, placePiece, clearFullLines, getSimulatedLineClears, countPieceBlocks, getBasicClearScore, checkGameOver, getBoardCellFromCoords, getRandomGameOverMessage, isBoardEmpty } from './logic.js';
 import { unlockAudio, playWooshSound, playPlaceSound, playComboSound, playGameOverSound, toggleMute } from './audio.js';
+import { registerPlayer, syncHighScore, getTopScores } from './supabase.js';
 
 // DOM elemek
 const canvas = document.getElementById('gameCanvas');
@@ -354,6 +355,7 @@ async function handleEnd() {
       const isNewRecord = updateHighScore();
       if (isNewRecord) {
         updateHighScoreUI();
+        syncHighScore(gameState.highScore);
       }
 
       checkSpawnNextRound();
@@ -435,26 +437,82 @@ restartBtn.addEventListener('click', () => {
 
 window.addEventListener('resize', resizeCanvas);
 
-// --- INICIALIZÁLÓ LOGIKA (Mentett játék ellenőrzése) ---
-const hasSavedGame = loadSavedGame();
+// --- SUPABASE & LEADERBOARD HANDLERS ---
 
-if (hasSavedGame && gameState.score > 0) {
-  if (startBtn) startBtn.textContent = "Continue Game";
-  displayedScore = gameState.score;
-  if (scoreElement) scoreElement.textContent = gameState.score;
-} else {
-  if (startBtn) startBtn.textContent = "Start Game";
-  
-  if (!currentPieces.some(p => p !== null)) {
-    spawnNewPieces();
+// DOM elements
+const nameModal = document.getElementById('name-modal');
+const playerNameInput = document.getElementById('player-name-input');
+const saveNameBtn = document.getElementById('save-name-btn');
+const scoreboardModal = document.getElementById('scoreboard-modal');
+const scoreboardBtn = document.getElementById('scoreboard-btn');
+const closeScoreboardBtn = document.getElementById('close-scoreboard-btn');
+const leaderboardList = document.getElementById('leaderboard-list');
+
+// 1. Check if the player name is already saved on this device
+function checkPlayerName() {
+  const savedName = localStorage.getItem('blockBlast_playerName');
+  if (!savedName) {
+    nameModal.classList.remove('hidden');
   }
 }
 
-resizeCanvas();
-updateHighScoreUI();
+// 2. Save player name to Supabase
+if (saveNameBtn) {
+  saveNameBtn.addEventListener('click', async () => {
+    const name = playerNameInput.value.trim();
+    if (name.length < 2) {
+      alert("Please enter a name with at least 2 characters!");
+      return;
+    }
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch((err) => {
-    console.log('SW registration failed:', err);
+    saveNameBtn.disabled = true;
+    saveNameBtn.textContent = "Saving...";
+
+    const player = await registerPlayer(name);
+    if (player) {
+      nameModal.classList.add('hidden');
+    } else {
+      alert("An error occurred while saving your name, please try again!");
+    }
+    saveNameBtn.disabled = false;
+    saveNameBtn.textContent = "Save Name";
   });
 }
+
+// 3. Open and load Leaderboard
+if (scoreboardBtn) {
+  scoreboardBtn.addEventListener('click', async () => {
+    leaderboardList.innerHTML = "<p>Loading...</p>";
+    scoreboardModal.classList.remove('hidden');
+
+    const topScores = await getTopScores();
+    leaderboardList.innerHTML = "";
+
+    if (topScores.length === 0) {
+      leaderboardList.innerHTML = "<p>No high scores yet.</p>";
+      return;
+    }
+
+    topScores.forEach((entry, index) => {
+      const item = document.createElement('div');
+      item.className = `leaderboard-item ${index < 3 ? 'top-3' : ''}`;
+      
+      const medal = index === 0 ? '🥇 ' : index === 1 ? '🥈 ' : index === 2 ? '🥉 ' : `${index + 1}. `;
+      item.innerHTML = `
+        <span>${medal}${entry.player_name}</span>
+        <span>${entry.high_score}</span>
+      `;
+      leaderboardList.appendChild(item);
+    });
+  });
+}
+
+// 4. Close Leaderboard
+if (closeScoreboardBtn) {
+  closeScoreboardBtn.addEventListener('click', () => {
+    scoreboardModal.classList.add('hidden');
+  });
+}
+
+// Check player name on startup
+checkPlayerName();

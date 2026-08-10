@@ -16,6 +16,9 @@
   <link rel="apple-touch-icon" href="icon.png">
 
   <link rel="stylesheet" href="style.css">
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <!-- Mute / Unmute Gomb a jobb felső sarokban -->
@@ -57,7 +60,7 @@
       <p class="welcome-text">Welcome to</p>
       <div class="version">
         <h2>Block Blast</h2>
-        <span class="version-tag">v2.5.2</span>
+        <span class="version-tag">v2.6</span>
       </div>
       <button id="start-btn">Start Game</button>
     </div>
@@ -70,6 +73,39 @@
       <div id="final-score">0</div>
       <p id="gameover-text"></p>
       <button id="restart-btn" class="btn-hidden">New Game</button>
+    </div>
+  </div>
+
+<!-- NÉVMEGADÓ MODAL (Első belépéskor) -->
+  <div id="name-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Enter Your Name</h2>
+      <input type="text" id="player-name-input" maxlength="12" placeholder="Your Name..." />
+      <button id="save-name-btn">Save Name</button>
+    </div>
+  </div>
+
+  <!-- TELJES KÉPERNYŐS START GAME OVERLAY (Scoreboard gombbal kiegészítve) -->
+  <div id="start-game-modal" class="modal">
+    <div class="modal-content">
+      <div class="title-group">
+        <p class="welcome-text">Welcome to</p>
+        <h2>Block Blast</h2>
+        <span class="version-tag">v2.6</span>
+      </div>
+      <button id="start-btn">Start Game</button>
+      <button id="scoreboard-btn" class="secondary-btn">View Leaderboard</button>
+    </div>
+  </div>
+
+  <!-- RANGLISTA MODAL -->
+  <div id="scoreboard-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Leaderboard</h2>
+      <div id="leaderboard-list">
+        <!-- Ide töltődnek be a pontszámok -->
+      </div>
+      <button id="close-scoreboard-btn" class="secondary-btn">Back</button>
     </div>
   </div>
 
