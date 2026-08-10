@@ -401,3 +401,10 @@ body {
   border: 1px solid rgba(255, 215, 0, 0.3);
   font-weight: 800;
 }
+
+/* Saját játékos kiemelése a ranglistán */
+.leaderboard-item.is-you {
+  background: rgba(255, 179, 199, 0.25) !important;
+  border: 2px solid #ffb3c7 !important;
+  font-weight: 800;
+}

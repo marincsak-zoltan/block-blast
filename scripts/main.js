@@ -1,7 +1,7 @@
 import { GRID_SIZE, grid, gameState, dragInfo, currentPieces, spawnNewPieces, checkSpawnNextRound, resetState, updateHighScore, saveGameState, loadSavedGame, clearSavedGame } from './state.js';
 import { canPlacePiece, placePiece, clearFullLines, getSimulatedLineClears, countPieceBlocks, getBasicClearScore, checkGameOver, getBoardCellFromCoords, getRandomGameOverMessage, isBoardEmpty } from './logic.js';
 import { unlockAudio, playWooshSound, playPlaceSound, playComboSound, playGameOverSound, toggleMute } from './audio.js';
-import { registerPlayer, syncHighScore, getTopScores } from './supabase.js';
+import { registerPlayer, syncHighScore, getTopScores, getPlayerRank } from './supabase.js';
 
 // DOM elemek
 const canvas = document.getElementById('gameCanvas');
@@ -30,12 +30,16 @@ const blockImage = new Image(); blockImage.src = 'the_object.png';
 const gradHorizImage = new Image(); gradHorizImage.src = 'gradient_horizontal.png';
 const gradVertImage = new Image(); gradVertImage.src = 'gradient_vertical.png';
 
+let pendingPwaUpdate = false;
+
 let loaded = 0;
 const onLoad = () => { if (++loaded === 3) drawAll(); };
 blockImage.onload = onLoad; gradHorizImage.onload = onLoad; gradVertImage.onload = onLoad;
 
+// STABIL CANVAS MÉRETEZÉS (1:1 PIXELPONTOS KOORDINÁTÁK)
 function resizeCanvas() {
   const maxSize = Math.min(window.innerWidth - 20, window.innerHeight - 260, 420);
+
   canvas.width = maxSize;
   canvas.height = maxSize;
   gameState.cellSize = canvas.width / GRID_SIZE;
@@ -127,6 +131,7 @@ function drawDragOverlay() {
   const displayCellSize = rect.width / GRID_SIZE;
 
   const yOffset = displayCellSize * 1.5;
+
   const startX = dragInfo.x - (piece[0].length * displayCellSize) / 2;
   const startY = (dragInfo.y - yOffset) - (piece.length * displayCellSize) / 2;
 
@@ -267,6 +272,12 @@ function animateFinalScore(targetScore, onComplete) {
   }
 
   requestAnimationFrame(stepAnimation);
+}
+
+function checkAndApplyPwaUpdate() {
+  if (pendingPwaUpdate) {
+    window.location.reload();
+  }
 }
 
 // Eseménykezelők
@@ -421,9 +432,9 @@ window.addEventListener('touchmove', (e) => {
 }, { passive: false });
 window.addEventListener('touchend', handleEnd);
 
-// Start / Continue Game gomb eseménykezelője
 if (startBtn) {
   startBtn.addEventListener('click', () => {
+    checkAndApplyPwaUpdate();
     gameState.isStarted = true;
 
     if (startGameModal) {
@@ -440,38 +451,68 @@ if (startBtn) {
   });
 }
 
-if (gameOverScoreboardBtn) {
-  gameOverScoreboardBtn.addEventListener('click', async () => {
-    const leaderboardList = document.getElementById('leaderboard-list');
-    const scoreboardModal = document.getElementById('scoreboard-modal');
-    if (!leaderboardList || !scoreboardModal) return;
+// RANGLISTA MEGJELENÍTÉSE SORSZÁMOZÁSSAL ÉS SAJÁT HELYEZÉS KISZÁMÍTÁSÁVAL
+async function renderLeaderboard() {
+  const leaderboardList = document.getElementById('leaderboard-list');
+  const scoreboardModal = document.getElementById('scoreboard-modal');
+  if (!leaderboardList || !scoreboardModal) return;
 
-    leaderboardList.innerHTML = "<p>Loading...</p>";
-    scoreboardModal.classList.remove('hidden');
+  leaderboardList.innerHTML = "<p>Loading...</p>";
+  scoreboardModal.classList.remove('hidden');
 
-    const topScores = await getTopScores();
-    leaderboardList.innerHTML = "";
+  const topScores = await getTopScores();
+  leaderboardList.innerHTML = "";
 
-    if (topScores.length === 0) {
-      leaderboardList.innerHTML = "<p>No high scores yet.</p>";
-      return;
-    }
+  if (topScores.length === 0) {
+    leaderboardList.innerHTML = "<p>No high scores yet.</p>";
+    return;
+  }
 
-    topScores.forEach((entry, index) => {
-      const item = document.createElement('div');
-      item.className = `leaderboard-item ${index < 3 ? 'top-3' : ''}`;
-      
-      const medal = index === 0 ? '🥇 ' : index === 1 ? '🥈 ' : index === 2 ? '🥉 ' : `${index + 1}. `;
-      item.innerHTML = `
-        <span>${medal}${entry.player_name}</span>
-        <span>${entry.high_score}</span>
-      `;
-      leaderboardList.appendChild(item);
-    });
+  const myPlayerId = localStorage.getItem('blockBlast_playerId');
+  const myPlayerName = localStorage.getItem('blockBlast_playerName');
+  const myScore = gameState.highScore || 0;
+
+  let isUserInTop10 = false;
+
+  topScores.forEach((entry, index) => {
+    const item = document.createElement('div');
+    const isMe = (entry.id && entry.id === myPlayerId) || (entry.player_name === myPlayerName);
+    if (isMe) isUserInTop10 = true;
+
+    item.className = `leaderboard-item ${index < 3 ? 'top-3' : ''} ${isMe ? 'is-you' : ''}`;
+    
+    item.innerHTML = `
+      <span>${index + 1}. ${entry.player_name}${isMe ? ' <small style="font-size:0.8rem; opacity:0.8; margin-left:4px;">(YOU)</small>' : ''}</span>
+      <span>${entry.high_score}</span>
+    `;
+    leaderboardList.appendChild(item);
   });
+
+  if (!isUserInTop10 && myPlayerName) {
+    const myRank = await getPlayerRank(myScore);
+    if (myRank) {
+      const divider = document.createElement('div');
+      divider.style.cssText = "text-align: center; color: #bfa8ac; margin: 6px 0; font-weight: 800; font-size: 0.9rem;";
+      divider.textContent = "• • •";
+      leaderboardList.appendChild(divider);
+
+      const myItem = document.createElement('div');
+      myItem.className = 'leaderboard-item is-you';
+      myItem.innerHTML = `
+        <span>${myRank}. ${myPlayerName} <small style="font-size:0.8rem; opacity:0.8; margin-left:4px;">(YOU)</small></span>
+        <span>${myScore}</span>
+      `;
+      leaderboardList.appendChild(myItem);
+    }
+  }
 }
 
+const scoreboardBtn = document.getElementById('scoreboard-btn');
+if (scoreboardBtn) scoreboardBtn.addEventListener('click', renderLeaderboard);
+if (gameOverScoreboardBtn) gameOverScoreboardBtn.addEventListener('click', renderLeaderboard);
+
 restartBtn.addEventListener('click', () => {
+  checkAndApplyPwaUpdate();
   restartBtn.classList.add('btn-hidden');
   if (gameOverScoreboardBtn) gameOverScoreboardBtn.classList.add('btn-hidden');
   resetState();
@@ -486,14 +527,10 @@ restartBtn.addEventListener('click', () => {
 window.addEventListener('resize', resizeCanvas);
 
 // --- SUPABASE & LEADERBOARD HANDLERS ---
-
 const nameModal = document.getElementById('name-modal');
 const playerNameInput = document.getElementById('player-name-input');
 const saveNameBtn = document.getElementById('save-name-btn');
-const scoreboardModal = document.getElementById('scoreboard-modal');
-const scoreboardBtn = document.getElementById('scoreboard-btn');
 const closeScoreboardBtn = document.getElementById('close-scoreboard-btn');
-const leaderboardList = document.getElementById('leaderboard-list');
 
 function checkPlayerName() {
   const savedName = localStorage.getItem('blockBlast_playerName');
@@ -526,36 +563,9 @@ if (saveNameBtn) {
   });
 }
 
-if (scoreboardBtn) {
-  scoreboardBtn.addEventListener('click', async () => {
-    if (!leaderboardList || !scoreboardModal) return;
-    leaderboardList.innerHTML = "<p>Loading...</p>";
-    scoreboardModal.classList.remove('hidden');
-
-    const topScores = await getTopScores();
-    leaderboardList.innerHTML = "";
-
-    if (topScores.length === 0) {
-      leaderboardList.innerHTML = "<p>No high scores yet.</p>";
-      return;
-    }
-
-    topScores.forEach((entry, index) => {
-      const item = document.createElement('div');
-      item.className = `leaderboard-item ${index < 3 ? 'top-3' : ''}`;
-      
-      const medal = index === 0 ? '🥇 ' : index === 1 ? '🥈 ' : index === 2 ? '🥉 ' : `${index + 1}. `;
-      item.innerHTML = `
-        <span>${medal}${entry.player_name}</span>
-        <span>${entry.high_score}</span>
-      `;
-      leaderboardList.appendChild(item);
-    });
-  });
-}
-
 if (closeScoreboardBtn) {
   closeScoreboardBtn.addEventListener('click', () => {
+    const scoreboardModal = document.getElementById('scoreboard-modal');
     if (scoreboardModal) scoreboardModal.classList.add('hidden');
   });
 }
@@ -577,14 +587,17 @@ resizeCanvas();
 updateHighScoreUI();
 checkPlayerName();
 
-// AUTOMATIKUS FRISSÍTÉS LOGIKA
+// KÍMÉLETES AUTOMATIKUS FRISSÍTÉS LOGIKA
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then((reg) => {
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          window.location.reload();
+          pendingPwaUpdate = true;
+          if (!gameState.isStarted || gameState.isGameOver) {
+            window.location.reload();
+          }
         }
       });
     });
