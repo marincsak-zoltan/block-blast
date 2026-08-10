@@ -25,16 +25,27 @@ export async function registerPlayer(name, initialHighScore = 0) {
   return data;
 }
 
-// Sync High Score to Supabase
+// Sync High Score to Supabase (UPSERT-tel, hogy törlés esetén is újra létrehozza!)
 export async function syncHighScore(score) {
   if (!supabase) return;
+  
   const playerId = localStorage.getItem('blockBlast_playerId');
+  const playerName = localStorage.getItem('blockBlast_playerName') || 'Player';
+
   if (!playerId) return;
 
+  // Ha korábban csak helyi fallback ID-t kapott, próbáljuk regisztrálni
+  if (playerId.startsWith('local_')) {
+    await registerPlayer(playerName, score);
+    return;
+  }
+
+  // UPDATE helyett UPSERT: ha törölted a sort Supabase-ben, automatikusan újra létrehozza!
   const { error } = await supabase
     .from('leaderboard')
-    .update({ high_score: score })
-    .eq('id', playerId);
+    .upsert([
+      { id: playerId, player_name: playerName, high_score: score }
+    ]);
 
   if (error) console.error('Error syncing high score:', error);
 }

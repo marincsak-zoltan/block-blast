@@ -335,7 +335,6 @@ async function handleEnd() {
         if (isBoardEmpty()) {
           const clearBoardBonus = 500 * (gameState.comboCount + 1);
           gameState.score += clearBoardBonus;
-          console.log(`CLEAR BOARD! Bonus: +${clearBoardBonus} points!`);
         }
 
         gameState.comboCount++;
@@ -378,20 +377,16 @@ async function handleEnd() {
           gameOverTextElement.textContent = `"${getRandomGameOverMessage()}"`;
         }
 
-        // Pörgés előtt mindkét gombot elrejtjük
         restartBtn.classList.add('btn-hidden');
         if (gameOverScoreboardBtn) gameOverScoreboardBtn.classList.add('btn-hidden');
 
         gameOverModal.classList.remove('hidden');
         playGameOverSound();
 
-        // 4 mp pörgés
         animateFinalScore(gameState.score, () => {
-          // 1. Pörgés után 0.5 mp múlva beugrik a New Game gomb (0.8 mp rugós animációval)
           setTimeout(() => {
             restartBtn.classList.remove('btn-hidden');
 
-            // 2. A New Game beugrása után (0.8 mp múlva) felugrik a View Leaderboard gomb is
             setTimeout(() => {
               if (gameOverScoreboardBtn) gameOverScoreboardBtn.classList.remove('btn-hidden');
             }, 800);
@@ -429,12 +424,15 @@ window.addEventListener('touchend', handleEnd);
 // Start / Continue Game gomb eseménykezelője
 if (startBtn) {
   startBtn.addEventListener('click', () => {
+    gameState.isStarted = true;
+
     if (startGameModal) {
       startGameModal.classList.add('hidden');
     }
     
     if (gameState.score === 0) {
       resetState();
+      gameState.isStarted = true;
       spawnNewPieces();
     }
 
@@ -444,6 +442,10 @@ if (startBtn) {
 
 if (gameOverScoreboardBtn) {
   gameOverScoreboardBtn.addEventListener('click', async () => {
+    const leaderboardList = document.getElementById('leaderboard-list');
+    const scoreboardModal = document.getElementById('scoreboard-modal');
+    if (!leaderboardList || !scoreboardModal) return;
+
     leaderboardList.innerHTML = "<p>Loading...</p>";
     scoreboardModal.classList.remove('hidden');
 
@@ -471,11 +473,13 @@ if (gameOverScoreboardBtn) {
 
 restartBtn.addEventListener('click', () => {
   restartBtn.classList.add('btn-hidden');
+  if (gameOverScoreboardBtn) gameOverScoreboardBtn.classList.add('btn-hidden');
   resetState();
+  gameState.isStarted = true;
   displayedScore = 0;
   if (scoreElement) scoreElement.textContent = 0;
   gameOverModal.classList.add('hidden');
-  startGameModal.classList.add('hidden');
+  if (startGameModal) startGameModal.classList.add('hidden');
   drawAll();
 });
 
@@ -524,6 +528,7 @@ if (saveNameBtn) {
 
 if (scoreboardBtn) {
   scoreboardBtn.addEventListener('click', async () => {
+    if (!leaderboardList || !scoreboardModal) return;
     leaderboardList.innerHTML = "<p>Loading...</p>";
     scoreboardModal.classList.remove('hidden');
 
@@ -551,7 +556,7 @@ if (scoreboardBtn) {
 
 if (closeScoreboardBtn) {
   closeScoreboardBtn.addEventListener('click', () => {
-    scoreboardModal.classList.add('hidden');
+    if (scoreboardModal) scoreboardModal.classList.add('hidden');
   });
 }
 
