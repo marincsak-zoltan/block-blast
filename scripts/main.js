@@ -451,7 +451,7 @@ if (startBtn) {
   });
 }
 
-// RANGLISTA MEGJELENÍTÉSE SORSZÁMOZÁSSAL ÉS SAJÁT HELYEZÉS KISZÁMÍTÁSÁVAL
+// RANGLISTA MEGJELENÍTÉSE AUTOMATIKUS SZINKRONIZÁLÁSSAL
 async function renderLeaderboard() {
   const leaderboardList = document.getElementById('leaderboard-list');
   const scoreboardModal = document.getElementById('scoreboard-modal');
@@ -460,6 +460,12 @@ async function renderLeaderboard() {
   leaderboardList.innerHTML = "<p>Loading...</p>";
   scoreboardModal.classList.remove('hidden');
 
+  // 1. Mielőtt lekérjük a ranglistát, frissítjük a saját rekordunkat Supabase-ben!
+  if (gameState.highScore > 0) {
+    await syncHighScore(gameState.highScore);
+  }
+
+  // 2. Friss adatok lekérése az adatbázisból
   const topScores = await getTopScores();
   leaderboardList.innerHTML = "";
 
@@ -488,6 +494,7 @@ async function renderLeaderboard() {
     leaderboardList.appendChild(item);
   });
 
+  // 3. Ha a játékos ténylegesen nincs a Top 10-ben
   if (!isUserInTop10 && myPlayerName) {
     const myRank = await getPlayerRank(myScore);
     if (myRank) {
