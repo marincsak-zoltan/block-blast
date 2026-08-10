@@ -27,7 +27,7 @@
     .preview-area {
       width: 100%;
       max-width: 400px;
-      height: 320px;
+      min-height: 380px;
       display: flex;
       flex-direction: column;
       justify-content: space-around;
@@ -49,6 +49,15 @@
       text-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
     }
 
+    /* GOMBCSOPORT KONTAINER - NAGYOBB TÁVOLSÁGGAL (20px) */
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px; /* <--- ITT NÖVELTÜK MEG A TÁVOLSÁGOT */
+      width: 100%;
+    }
+
     /* RESTART GOMB POP-UP ANIMÁCIÓVAL */
     #restart-btn {
       padding: 18px 48px;
@@ -63,23 +72,46 @@
       cursor: pointer;
       box-shadow: 0 6px 0 #d9c5c9, 0 10px 20px rgba(0, 0, 0, 0.3);
       
-      /* Alapértelmezett pop-up animáció tulajdonságok */
       transform: scale(1);
       opacity: 1;
-      /* cubic-bezier adja meg a rugalmas, "rugós" beugró pop-up hatást */
       transition: transform var(--popup-speed, 0.4s) cubic-bezier(0.175, 0.885, 0.32, 1.275),
                   opacity var(--popup-speed, 0.4s) ease;
     }
 
-    /* REJTETT ÁLLAPOT (A PÖRGÉS IDEJÉN) */
-    #restart-btn.pop-hidden {
-      opacity: 0;
-      transform: scale(0); /* Teljesen összemegy és átlátszó lesz */
-      pointer-events: none;
-    }
-
     #restart-btn:active {
       transform: scale(0.95) translateY(4px);
+    }
+
+    /* MÁSODLAGOS (VIEW LEADERBOARD) GOMB STÍLUSA ÉS POP-UP ANIMÁCIÓJA */
+    .secondary-btn {
+      padding: 12px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #fff5f7;
+      background: transparent;
+      border: 2px solid #fff5f7;
+      border-radius: 12px;
+      cursor: pointer;
+
+      transform: scale(1);
+      opacity: 1;
+      transition: transform var(--popup-speed, 0.4s) cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                  opacity var(--popup-speed, 0.4s) ease,
+                  background 0.2s ease;
+    }
+
+    .secondary-btn:active {
+      transform: scale(0.95);
+      background: rgba(255, 245, 247, 0.15);
+    }
+
+    /* REJTETT ÁLLAPOT (A POP-UP ELŐTT) */
+    .pop-hidden {
+      opacity: 0 !important;
+      transform: scale(0) !important;
+      pointer-events: none !important;
     }
 
     /* IDŐZÍTŐ CSÍK A TESZTELÉSHEZ */
@@ -169,8 +201,11 @@
       </div>
     </div>
 
-    <!-- RESTART GOMB (ALAPÉRTELEMZETTBEN REJTVE) -->
-    <button id="restart-btn" class="pop-hidden">New Game</button>
+    <!-- GOMBCSOPORT -->
+    <div class="btn-group">
+      <button id="restart-btn" class="pop-hidden">New Game</button>
+      <button id="scoreboard-btn" class="secondary-btn pop-hidden">View Leaderboard</button>
+    </div>
   </div>
 
   <!-- VEZÉRLŐPANEL -->
@@ -196,6 +231,7 @@
   <script>
     const finalScoreElement = document.getElementById('final-score');
     const restartBtn = document.getElementById('restart-btn');
+    const scoreboardBtn = document.getElementById('scoreboard-btn');
     const progressBar = document.getElementById('progress-bar');
     const testBtn = document.getElementById('test-btn');
 
@@ -238,17 +274,20 @@
       const durationSeconds = parseFloat(document.getElementById('time-input').value) || 4;
       const popupSpeed = parseFloat(document.getElementById('popup-speed-input').value) || 0.4;
 
-      // Dinamikusan beállítjuk a pop-up animáció sebességét CSS változóval
       restartBtn.style.setProperty('--popup-speed', `${popupSpeed}s`);
+      scoreboardBtn.style.setProperty('--popup-speed', `${popupSpeed}s`);
 
-      // Gomb elrejtése a pörgés elején
       restartBtn.classList.add('pop-hidden');
+      scoreboardBtn.classList.add('pop-hidden');
 
-      // Pörgetés elindítása
       animateFinalScore(targetScore, durationSeconds, () => {
-        // A pörgés vége után vár 0.5 másodpercet (500 ms), majd beugrik a gomb!
         setTimeout(() => {
           restartBtn.classList.remove('pop-hidden');
+
+          setTimeout(() => {
+            scoreboardBtn.classList.remove('pop-hidden');
+          }, popupSpeed * 1000);
+
         }, 500);
       });
     });

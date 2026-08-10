@@ -6,12 +6,12 @@ export const supabase = (window.supabase && window.supabase.createClient)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
-// Register player in LocalStorage and Supabase
-export async function registerPlayer(name) {
+// Register player in LocalStorage and Supabase with existing high score
+export async function registerPlayer(name, initialHighScore = 0) {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from('leaderboard')
-    .insert([{ player_name: name, high_score: 0 }])
+    .insert([{ player_name: name, high_score: initialHighScore }])
     .select()
     .single();
 

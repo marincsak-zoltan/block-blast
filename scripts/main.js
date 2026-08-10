@@ -18,6 +18,7 @@ const startBtn = document.getElementById('start-btn');
 const kittyMascot = document.getElementById('kitty-mascot');
 const highScoreElement = document.getElementById('high-score');
 const muteBtn = document.getElementById('mute-btn');
+const gameOverScoreboardBtn = document.getElementById('gameover-scoreboard-btn');
 
 const pieceCanvases = [0, 1, 2].map(i => document.getElementById(`piece${i}`));
 const pieceCtxs = pieceCanvases.map(c => c.getContext('2d'));
@@ -377,14 +378,24 @@ async function handleEnd() {
           gameOverTextElement.textContent = `"${getRandomGameOverMessage()}"`;
         }
 
+        // Pörgés előtt mindkét gombot elrejtjük
         restartBtn.classList.add('btn-hidden');
-        gameOverModal.classList.remove('hidden');
+        if (gameOverScoreboardBtn) gameOverScoreboardBtn.classList.add('btn-hidden');
 
+        gameOverModal.classList.remove('hidden');
         playGameOverSound();
 
+        // 4 mp pörgés
         animateFinalScore(gameState.score, () => {
+          // 1. Pörgés után 0.5 mp múlva beugrik a New Game gomb (0.8 mp rugós animációval)
           setTimeout(() => {
             restartBtn.classList.remove('btn-hidden');
+
+            // 2. A New Game beugrása után (0.8 mp múlva) felugrik a View Leaderboard gomb is
+            setTimeout(() => {
+              if (gameOverScoreboardBtn) gameOverScoreboardBtn.classList.remove('btn-hidden');
+            }, 800);
+
           }, 500);
         });
       }
@@ -431,6 +442,33 @@ if (startBtn) {
   });
 }
 
+if (gameOverScoreboardBtn) {
+  gameOverScoreboardBtn.addEventListener('click', async () => {
+    leaderboardList.innerHTML = "<p>Loading...</p>";
+    scoreboardModal.classList.remove('hidden');
+
+    const topScores = await getTopScores();
+    leaderboardList.innerHTML = "";
+
+    if (topScores.length === 0) {
+      leaderboardList.innerHTML = "<p>No high scores yet.</p>";
+      return;
+    }
+
+    topScores.forEach((entry, index) => {
+      const item = document.createElement('div');
+      item.className = `leaderboard-item ${index < 3 ? 'top-3' : ''}`;
+      
+      const medal = index === 0 ? '🥇 ' : index === 1 ? '🥈 ' : index === 2 ? '🥉 ' : `${index + 1}. `;
+      item.innerHTML = `
+        <span>${medal}${entry.player_name}</span>
+        <span>${entry.high_score}</span>
+      `;
+      leaderboardList.appendChild(item);
+    });
+  });
+}
+
 restartBtn.addEventListener('click', () => {
   restartBtn.classList.add('btn-hidden');
   resetState();
@@ -471,7 +509,9 @@ if (saveNameBtn) {
     saveNameBtn.disabled = true;
     saveNameBtn.textContent = "Saving...";
 
-    const player = await registerPlayer(name);
+    const currentHighScore = gameState.highScore || 0;
+    const player = await registerPlayer(name, currentHighScore);
+
     if (player) {
       nameModal.classList.add('hidden');
     } else {

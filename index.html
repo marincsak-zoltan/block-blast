@@ -62,16 +62,17 @@
     </div>
   </div>
 
-  <!-- 2. TELJES KÉPERNYŐS START GAME OVERLAY -->
-  <div id="start-game-modal" class="modal">
+  <!-- TELJES KÉPERNYŐS GAME OVER OVERLAY -->
+  <div id="game-over-modal" class="modal hidden">
     <div class="modal-content">
-      <div class="title-group">
-        <p class="welcome-text">Welcome to</p>
-        <h2>Block Blast</h2>
-        <span class="version-tag">v2.6.2</span>
+      <h2 id="game-over-title">Game Over</h2>
+      <div id="final-score">0</div>
+      <p id="gameover-text"></p>
+      
+      <div class="btn-group">
+        <button id="restart-btn" class="btn-hidden">New Game</button>
+        <button id="gameover-scoreboard-btn" class="secondary-btn btn-hidden">View Leaderboard</button>
       </div>
-      <button id="start-btn">Start Game</button>
-      <button id="scoreboard-btn" class="secondary-btn">View Leaderboard</button>
     </div>
   </div>
 

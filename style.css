@@ -286,6 +286,15 @@ body {
   transition: none !important;
 }
 
+/* GAME OVER GOMBCSOPORT 20PX TÁVOLSÁGGAL */
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
 /* ========================================================= */
 /* NÉVBEKÉRŐ ÉS RANGLISTA (SUPABASE UI) STÍLUSOK */
 /* ========================================================= */
