@@ -1,4 +1,4 @@
-const CACHE_NAME = 'block-blast-v2.6.1';
+const CACHE_NAME = 'block-blast-v2.6.2';
 const ASSETS = [
   './',
   './index.html',
@@ -14,15 +14,16 @@ const ASSETS = [
   './scripts/state.js',
   './scripts/logic.js',
   './scripts/audio.js',
+  './scripts/supabase.js',
   
-  // 🔊 HANGEFFEKTEK (Alap hangok)
+  // 🔊 HANGEFFEKTEK
   './sounds/woosh1.mp3',
   './sounds/woosh2.mp3',
   './sounds/woosh3.mp3',
   './sounds/place.mp3',
   './sounds/game_over.mp3',
 
-  // 🎵 KOMBÓ HANGOK (1-10)
+  // 🎵 KOMBÓ HANGOK
   './sounds/combo1.mp3',
   './sounds/combo2.mp3',
   './sounds/combo3.mp3',
@@ -35,7 +36,6 @@ const ASSETS = [
   './sounds/combo10.mp3'
 ];
 
-// Telepítéskor AZONNAL átveszi az irányítást
 self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
@@ -43,7 +43,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Aktiváláskor törli a régi cache-t ÉS kényszeríti az új verziót
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {

@@ -1,10 +1,14 @@
-const SUPABASE_URL = 'https://vmybrqrvcsoydflujcng.supabase.co/rest/v1/';
+const SUPABASE_URL = 'https://vmybrqrvcsoydflujcng.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZteWJycXJ2Y3NveWRmbHVqY25nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNTExNzksImV4cCI6MjEwMTkyNzE3OX0.VVTePUV0eoCXwtrsbtSA0Ga0ijJAPmev4j23rXXd1UY';
 
-export const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Biztonságos inicializálás
+export const supabase = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
 
 // Register player in LocalStorage and Supabase
 export async function registerPlayer(name) {
+  if (!supabase) return null;
   const { data, error } = await supabase
     .from('leaderboard')
     .insert([{ player_name: name, high_score: 0 }])
@@ -23,6 +27,7 @@ export async function registerPlayer(name) {
 
 // Sync High Score to Supabase
 export async function syncHighScore(score) {
+  if (!supabase) return;
   const playerId = localStorage.getItem('blockBlast_playerId');
   if (!playerId) return;
 
@@ -36,6 +41,7 @@ export async function syncHighScore(score) {
 
 // Fetch Top 10 players
 export async function getTopScores() {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('leaderboard')
     .select('player_name, high_score')

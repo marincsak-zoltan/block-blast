@@ -204,7 +204,6 @@ async function animateLineClears(fullRows, fullCols) {
   gameState.isAnimating = false;
 }
 
-// FEJLÉC PONTSZÁM PÖRGÉSE
 let displayedScore = 0;
 let scoreAnimationId = null;
 
@@ -239,7 +238,6 @@ function updateHighScoreUI() {
   }
 }
 
-// PONTOSAN 4 MÁSODPERCIG TARTÓ, LÁGYAN LEFÉKEZŐ PONTSZÁM PÖRGÉS
 function animateFinalScore(targetScore, onComplete) {
   finalScoreElement.textContent = 0;
 
@@ -336,7 +334,7 @@ async function handleEnd() {
         if (isBoardEmpty()) {
           const clearBoardBonus = 500 * (gameState.comboCount + 1);
           gameState.score += clearBoardBonus;
-          console.log(`CLEAR BOARD! Bónusz: +${clearBoardBonus} pont!`);
+          console.log(`CLEAR BOARD! Bonus: +${clearBoardBonus} points!`);
         }
 
         gameState.comboCount++;
@@ -359,12 +357,10 @@ async function handleEnd() {
       }
 
       checkSpawnNextRound();
-
       saveGameState();
 
       if (checkGameOver()) {
         gameState.isGameOver = true;
-
         clearSavedGame();
 
         const modalContent = gameOverModal.querySelector('.modal-content');
@@ -400,7 +396,7 @@ async function handleEnd() {
   drawAll();
 }
 
-// Listener-ek
+// Event Listeners
 pieceCanvases.forEach((pCanvas, index) => {
   pCanvas.addEventListener('mousedown', (e) => handleStart(e.clientX, e.clientY, index));
   pCanvas.addEventListener('touchstart', (e) => {
@@ -419,11 +415,21 @@ window.addEventListener('touchmove', (e) => {
 }, { passive: false });
 window.addEventListener('touchend', handleEnd);
 
-startBtn.addEventListener('click', () => {
-  gameState.isStarted = true;
-  startGameModal.classList.add('hidden');
-  drawAll();
-});
+// Start / Continue Game gomb eseménykezelője
+if (startBtn) {
+  startBtn.addEventListener('click', () => {
+    if (startGameModal) {
+      startGameModal.classList.add('hidden');
+    }
+    
+    if (gameState.score === 0) {
+      resetState();
+      spawnNewPieces();
+    }
+
+    drawAll();
+  });
+}
 
 restartBtn.addEventListener('click', () => {
   restartBtn.classList.add('btn-hidden');
@@ -439,7 +445,6 @@ window.addEventListener('resize', resizeCanvas);
 
 // --- SUPABASE & LEADERBOARD HANDLERS ---
 
-// DOM elements
 const nameModal = document.getElementById('name-modal');
 const playerNameInput = document.getElementById('player-name-input');
 const saveNameBtn = document.getElementById('save-name-btn');
@@ -448,15 +453,13 @@ const scoreboardBtn = document.getElementById('scoreboard-btn');
 const closeScoreboardBtn = document.getElementById('close-scoreboard-btn');
 const leaderboardList = document.getElementById('leaderboard-list');
 
-// 1. Check if the player name is already saved on this device
 function checkPlayerName() {
   const savedName = localStorage.getItem('blockBlast_playerName');
-  if (!savedName) {
+  if (!savedName && nameModal) {
     nameModal.classList.remove('hidden');
   }
 }
 
-// 2. Save player name to Supabase
 if (saveNameBtn) {
   saveNameBtn.addEventListener('click', async () => {
     const name = playerNameInput.value.trim();
@@ -479,7 +482,6 @@ if (saveNameBtn) {
   });
 }
 
-// 3. Open and load Leaderboard
 if (scoreboardBtn) {
   scoreboardBtn.addEventListener('click', async () => {
     leaderboardList.innerHTML = "<p>Loading...</p>";
@@ -507,24 +509,36 @@ if (scoreboardBtn) {
   });
 }
 
-// 4. Close Leaderboard
 if (closeScoreboardBtn) {
   closeScoreboardBtn.addEventListener('click', () => {
     scoreboardModal.classList.add('hidden');
   });
 }
 
-// Check player name on startup
+// INICIALIZÁLÁS BETÖLTÉSKOR
+const hasSavedGame = loadSavedGame();
+if (hasSavedGame && gameState.score > 0) {
+  if (startBtn) startBtn.textContent = "Continue Game";
+  displayedScore = gameState.score;
+  if (scoreElement) scoreElement.textContent = gameState.score;
+} else {
+  if (startBtn) startBtn.textContent = "Start Game";
+  if (!currentPieces.some(p => p !== null)) {
+    spawnNewPieces();
+  }
+}
+
+resizeCanvas();
+updateHighScoreUI();
 checkPlayerName();
 
-// --- AUTOMATIKUS FRISSÍTÉS REFRESH LOGIKA ---
+// AUTOMATIKUS FRISSÍTÉS LOGIKA
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then((reg) => {
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // Ha új verziót éslel a böngésző, automatikusan újraindítja az oldalt az új kóddal!
           window.location.reload();
         }
       });

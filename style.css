@@ -153,7 +153,7 @@ body {
 }
 
 /* ========================================================= */
-/* TELJES KÉPERNYŐS FELÜLETEK (START ÉS GAME OVER SCREEN) */
+/* TELJES KÉPERNYŐS FELÜLETEK (MODALS) */
 /* ========================================================= */
 
 .modal {
@@ -162,7 +162,7 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #774046; /* Egységes teljes képernyős háttér */
+  background-color: #774046;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -178,7 +178,6 @@ body {
   pointer-events: none;
 }
 
-/* TARTALOM FÜGGŐLEGES KÖZÉPRE IGAZÍTÁSA ESZTÉTIKUS TÁVOLSÁGOKKAL */
 .modal-content {
   background: none;
   border: none;
@@ -195,25 +194,12 @@ body {
   color: #fff5f7;
 }
 
-/* VERZIÓJELZŐ A KEZDŐKÉPERNYŐN */
-.version-tag {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #c4aeb2;
-  margin-top: -10px;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-  /* opacity: 0.8; */
-}
-
-/* FŐCÍMEK */
-.modal-content h2 {
-  font-size: 3.2rem;
-  font-weight: 900;
-  margin: 0;
-  letter-spacing: 1px;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  transition: color 0.3s ease;
+/* CÍM ÉS VERZIÓSZÁM BLOKK */
+.title-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 
 .welcome-text {
@@ -223,7 +209,25 @@ body {
   margin: 0;
 }
 
-/* HATALMAS PÖRGŐ PONTSZÁM KIÍRÁS */
+.modal-content h2 {
+  font-size: 3.2rem;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: 1px;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: color 0.3s ease;
+}
+
+.version-tag {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #c4aeb2;
+  margin-top: 4px;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+/* GAME OVER PONTSZÁM & SZÖVEG */
 #final-score {
   font-size: 5.5rem;
   font-weight: 900;
@@ -232,7 +236,6 @@ body {
   transition: color 0.3s ease;
 }
 
-/* GAME OVER BESZÓLÓ SZÖVEG */
 #gameover-text {
   font-size: 1.4rem;
   font-style: italic;
@@ -246,14 +249,13 @@ body {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* REKORD ESETÉN SÁRGA SZÍNEK */
 .modal-content.is-highscore h2,
 .modal-content.is-highscore #final-score {
   color: #ffd700;
-  text-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-/* GOMBOK STÍLUSA ÉS ELREJTÉSE */
+/* GOMBOK STÍLUSA */
 #start-btn, 
 #restart-btn {
   padding: 18px 48px;
@@ -267,12 +269,9 @@ body {
   border-radius: 16px;
   cursor: pointer;
   box-shadow: 0 6px 0 #d9c5c9, 0 10px 20px rgba(0, 0, 0, 0.3);
-  
-  /* Pop-up animáció: 0.8 mp rugalmas beugrás */
   transform: scale(1);
   opacity: 1;
-  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-              opacity 0.8s ease;
+  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.8s ease;
 }
 
 #start-btn:active, 
@@ -280,7 +279,6 @@ body {
   transform: scale(0.95) translateY(4px);
 }
 
-/* GOMB REJTÉSE A PÖRGÉS IDEJÉRE (AZONNALI ELTŰNÉS TRANSITION NÉLKÜL) */
 .btn-hidden {
   opacity: 0 !important;
   transform: scale(0) !important;
@@ -292,13 +290,11 @@ body {
 /* NÉVBEKÉRŐ ÉS RANGLISTA (SUPABASE UI) STÍLUSOK */
 /* ========================================================= */
 
-/* A névbekérő ablak teljesen takarja el a mögötte lévő modalt! */
 #name-modal {
   z-index: 20000 !important;
-  background-color: #774046 !important; /* Teljesen tömör háttér, nincs átlátszóság */
+  background-color: #774046 !important;
 }
 
-/* Névbekérő cím méretezése */
 #name-modal h2 {
   font-size: 2.8rem;
   font-weight: 900;
@@ -308,7 +304,6 @@ body {
   text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-/* Névbeviteli mező */
 #player-name-input {
   width: 85%;
   max-width: 320px;
@@ -330,7 +325,6 @@ body {
   font-weight: 600;
 }
 
-/* A mentés gomb az igazi arcade Start gomb stílusát kapja meg! */
 #save-name-btn {
   padding: 16px 40px;
   font-size: 1.2rem;
@@ -350,7 +344,6 @@ body {
   transform: scale(0.95) translateY(4px);
 }
 
-/* Másodlagos gomb (Scoreboard & Back gombok) */
 .secondary-btn {
   padding: 12px 28px;
   font-size: 1rem;
@@ -371,7 +364,6 @@ body {
   background: rgba(255, 245, 247, 0.15);
 }
 
-/* Ranglista keret és görgethető lista */
 #leaderboard-list {
   width: 100%;
   max-width: 360px;
@@ -381,7 +373,6 @@ body {
   padding-right: 5px;
 }
 
-/* Egyéni elemek a ranglistában */
 .leaderboard-item {
   display: flex;
   justify-content: space-between;
@@ -395,7 +386,6 @@ body {
   color: #fff5f7;
 }
 
-/* Top 3 dobogós kiemelés */
 .leaderboard-item.top-3 {
   color: #ffd700;
   background: rgba(255, 215, 0, 0.15);

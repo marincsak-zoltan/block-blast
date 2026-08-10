@@ -9,31 +9,29 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffb3c7">
   
-  <!-- iOS (Apple) támogatás -->
+  <!-- iOS / Mobile támogatás -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Block Blast">
   <link rel="apple-touch-icon" href="icon.png">
 
-  <link rel="stylesheet" href="style.css">
-
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Mute / Unmute Gomb a jobb felső sarokban -->
-  <button id="mute-btn" class="icon-btn" aria-label="Hangok ki/bekapcsolása">🔊</button>
+  <button id="mute-btn" class="icon-btn" aria-label="Sound Toggle">🔊</button>
 
   <!-- FELSŐ FEJLÉC ZÓNA -->
   <div class="header-zone">
-    <!-- Rekord a bal felső sarokban -->
     <div class="high-score-container">
       <span>👑</span>
       <span id="high-score">0</span>
     </div>
 
-    <!-- Fő pontszám biztonságos távolságban alatta -->
     <div class="score-container">
       <div id="score">0</div>
     </div>
@@ -55,19 +53,29 @@
   <!-- Fullscreen lebegő canvas a húzáshoz -->
   <canvas id="dragCanvas"></canvas>
 
-  <!-- TELJES KÉPERNYŐS START GAME OVERLAY -->
-  <div id="start-game-modal" class="modal">
+  <!-- 1. NÉVMEGADÓ MODAL (Első belépéskor) -->
+  <div id="name-modal" class="modal hidden">
     <div class="modal-content">
-      <p class="welcome-text">Welcome to</p>
-      <div class="version">
-        <h2>Block Blast</h2>
-        <span class="version-tag">v2.6.1</span>
-      </div>
-      <button id="start-btn">Start Game</button>
+      <h2>Enter Your Name</h2>
+      <input type="text" id="player-name-input" maxlength="12" placeholder="Your Name..." />
+      <button id="save-name-btn">Save Name</button>
     </div>
   </div>
 
-  <!-- TELJES KÉPERNYŐS GAME OVER OVERLAY -->
+  <!-- 2. TELJES KÉPERNYŐS START GAME OVERLAY -->
+  <div id="start-game-modal" class="modal">
+    <div class="modal-content">
+      <div class="title-group">
+        <p class="welcome-text">Welcome to</p>
+        <h2>Block Blast</h2>
+        <span class="version-tag">v2.6.2</span>
+      </div>
+      <button id="start-btn">Start Game</button>
+      <button id="scoreboard-btn" class="secondary-btn">View Leaderboard</button>
+    </div>
+  </div>
+
+  <!-- 3. TELJES KÉPERNYŐS GAME OVER OVERLAY -->
   <div id="game-over-modal" class="modal hidden">
     <div class="modal-content">
       <h2 id="game-over-title">Game Over</h2>
@@ -77,29 +85,7 @@
     </div>
   </div>
 
-<!-- NÉVMEGADÓ MODAL (Első belépéskor) -->
-  <div id="name-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Enter Your Name</h2>
-      <input type="text" id="player-name-input" maxlength="12" placeholder="Your Name..." />
-      <button id="save-name-btn">Save Name</button>
-    </div>
-  </div>
-
-  <!-- TELJES KÉPERNYŐS START GAME OVERLAY (Scoreboard gombbal kiegészítve) -->
-  <div id="start-game-modal" class="modal">
-    <div class="modal-content">
-      <div class="title-group">
-        <p class="welcome-text">Welcome to</p>
-        <h2>Block Blast</h2>
-        <span class="version-tag">v2.6.1</span>
-      </div>
-      <button id="start-btn">Start Game</button>
-      <button id="scoreboard-btn" class="secondary-btn">View Leaderboard</button>
-    </div>
-  </div>
-
-  <!-- RANGLISTA MODAL -->
+  <!-- 4. RANGLISTA MODAL -->
   <div id="scoreboard-modal" class="modal hidden">
     <div class="modal-content">
       <h2>Leaderboard</h2>
