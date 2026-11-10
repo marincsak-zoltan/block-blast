@@ -1,4 +1,4 @@
-import PocketBase from 'pocketbase';
+import PocketBase from 'https://unpkg.com/pocketbase@latest/dist/pocketbase.es.mjs';
 
 // Cseréld ki a saját PocketBase szervered URL-jére
 const POCKETBASE_URL = 'https://pb.zoliecosystem.com';
