@@ -1,7 +1,7 @@
 import { GRID_SIZE, grid, gameState, dragInfo, currentPieces, spawnNewPieces, checkSpawnNextRound, resetState, updateHighScore, saveGameState, loadSavedGame, clearSavedGame } from './state.js';
 import { canPlacePiece, placePiece, clearFullLines, getSimulatedLineClears, countPieceBlocks, getBasicClearScore, checkGameOver, getBoardCellFromCoords, getRandomGameOverMessage, isBoardEmpty } from './logic.js';
 import { unlockAudio, playWooshSound, playPlaceSound, playComboSound, playGameOverSound, toggleMute } from './audio.js';
-import { registerPlayer, syncHighScore, getTopScores, getPlayerRank } from './supabase.js';
+import { registerPlayer, syncHighScore, getTopScores, getPlayerRank } from './pocketbase.js';
 
 // DOM elemek
 const canvas = document.getElementById('gameCanvas');
